@@ -9,8 +9,9 @@ public class Producto {
     private String imagenUrl;
     private String cantidad;
     private String puntaje;
+    private String idTienda;
 
-    public Producto(String id, String nombre, String descripcion, String precio, String extra, String cantidad, String puntaje) {
+    public Producto(String id, String nombre, String descripcion, String precio, String extra, String cantidad, String puntaje, String idTienda) {
         this.id = id;
         this.nombre = nombre;
         this.descripcion = descripcion;
@@ -18,6 +19,7 @@ public class Producto {
         this.extra = extra;
         this.cantidad = cantidad;
         this.puntaje = puntaje;
+        this.idTienda = idTienda;
     }
 
     public Producto(){
@@ -85,5 +87,13 @@ public class Producto {
 
     public void setPuntaje(String puntaje) {
         this.puntaje = puntaje;
+    }
+
+    public String getIdTienda() {
+        return idTienda;
+    }
+
+    public void setIdTienda(String idTienda) {
+        this.idTienda = idTienda;
     }
 }
