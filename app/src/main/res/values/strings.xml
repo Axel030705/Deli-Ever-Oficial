@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Deli-Ever</string>
+    <string name="title_activity_registro_de_tienda">RegistroDeTienda</string>
+
+    <string name="Slogan">Ordena, Disfruta, Repite</string>
+    <string name="Slogan2">Tu sabor, a un clic de distancia</string>
+    <string name="default_notification_channel_id" translatable="false">channel_id</string>
+
+</resources>
