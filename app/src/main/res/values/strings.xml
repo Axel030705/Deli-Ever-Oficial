@@ -5,5 +5,7 @@
     <string name="Slogan">Ordena, Disfruta, Repite</string>
     <string name="Slogan2">Tu sabor, a un clic de distancia</string>
     <string name="default_notification_channel_id" translatable="false">channel_id</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>

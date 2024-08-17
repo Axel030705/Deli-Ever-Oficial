@@ -122,10 +122,10 @@ public class FragmentInicio extends Fragment {
             }
         });
 
-        ImagenUsuario.setOnClickListener(v -> {
+        /*ImagenUsuario.setOnClickListener(v -> {
             Intent intent = new Intent(requireActivity(), Perfil_Activity.class);
             startActivity(intent);
-        });
+        }); */
 
         usuariosRef.addValueEventListener(new ValueEventListener() {
             @Override

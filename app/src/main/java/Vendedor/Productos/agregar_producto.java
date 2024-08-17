@@ -43,6 +43,7 @@ public class agregar_producto extends AppCompatActivity {
     private String usuarioId;
     private static final int REQUEST_IMAGE_PICK = 1;
     private Uri imagenSeleccionada;
+    private String tiendaId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,7 +95,7 @@ public class agregar_producto extends AppCompatActivity {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
                     DataSnapshot tiendaSnapshot = dataSnapshot.getChildren().iterator().next();
-                    String tiendaId = tiendaSnapshot.getKey();
+                    tiendaId = tiendaSnapshot.getKey();
                     if (tiendaId != null) {
                         DatabaseReference tiendaUsuarioRef = tiendaRef.child(tiendaId);
                         productosRef = tiendaUsuarioRef.child("productos");
@@ -167,7 +168,8 @@ public class agregar_producto extends AppCompatActivity {
         String idProducto = productosRef.push().getKey();
 
         // Crear un objeto Producto con los valores ingresados
-        Producto producto = new Producto(idProducto, nombreProducto, descripcionProducto, precioProducto, extraProducto, cantidadProducto, "0");
+        String tiendaString = tiendaId.toString();
+        Producto producto = new Producto(idProducto, nombreProducto, descripcionProducto, precioProducto, extraProducto, cantidadProducto, "0", tiendaString);
 
         // Subir la imagen a Firebase Storage
         assert idProducto != null;

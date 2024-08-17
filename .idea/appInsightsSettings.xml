@@ -9,9 +9,9 @@
               <option name="connection">
                 <ConnectionSetting>
                   <option name="appId" value="com.example.agenda" />
-                  <option name="mobileSdkAppId" value="1:48534996518:android:08e6dd07ae75062a2888e7" />
-                  <option name="projectId" value="student-app-fb310" />
-                  <option name="projectNumber" value="48534996518" />
+                  <option name="mobileSdkAppId" value="1:867324946309:android:9a57a7602d96b9638a06ec" />
+                  <option name="projectId" value="deli-ever-ee94d" />
+                  <option name="projectNumber" value="867324946309" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
