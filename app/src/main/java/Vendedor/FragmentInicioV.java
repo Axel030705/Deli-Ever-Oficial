@@ -143,13 +143,13 @@ public class FragmentInicioV extends Fragment {
             }
         });
 
-        ImagenUsuarioVendedor.setOnClickListener(new View.OnClickListener() {
+        /*ImagenUsuarioVendedor.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(requireActivity(), Perfil_Activity.class);
                 startActivity(intent);
             }
-        });
+        }); */
 
         usuariosRef.addValueEventListener(new ValueEventListener() {
             @Override

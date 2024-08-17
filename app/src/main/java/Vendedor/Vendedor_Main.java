@@ -11,6 +11,7 @@ import androidx.fragment.app.FragmentTransaction;
 import com.example.agenda.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import Perfil.FragmentPerfil;
 import Vendedor.Pedidos.FragmentPedidosV;
 
 public class Vendedor_Main extends AppCompatActivity {
@@ -26,7 +27,7 @@ public class Vendedor_Main extends AppCompatActivity {
         //Fragments
         fragmentInicioV = new FragmentInicioV();
         fragmentPedidosV = new FragmentPedidosV();
-        //fragmentPerfilV = new FragmentPerfilV();
+        fragmentPerfilV = new FragmentPerfil();
 
         //Fragment Inicio
         getSupportFragmentManager().beginTransaction().add(R.id.contentFragments_tiendas, fragmentInicioV).commit();
