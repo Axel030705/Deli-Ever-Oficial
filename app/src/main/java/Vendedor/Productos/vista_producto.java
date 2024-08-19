@@ -3,9 +3,11 @@ package Vendedor.Productos;
 
 import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.NotificationManager;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -17,12 +19,16 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 import com.bumptech.glide.Glide;
 import com.example.agenda.R;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
@@ -32,6 +38,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -54,15 +61,22 @@ public class vista_producto extends AppCompatActivity {
     public String nombreUsr;
     //Variables pedido
     public double precioTotal;
+    private double latitud;
+    private double longitud;
 
     //Noti
     private static final String CHANNEL_ID = "my_channel";
 
+    //Ubicaciones
+    private FusedLocationProviderClient fusedLocationClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_vista_producto);
+
+        //Ubicaciones
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         FirebaseApp.initializeApp(this);
         // Inicializar el NotificationManager
@@ -274,7 +288,9 @@ public class vista_producto extends AppCompatActivity {
                             cantidadSeleccionada,
                             userId,
                             productoId,
-                            "No"
+                            "No",
+                            "",
+                            ""
                     );
 
                     // Guarda el nuevo pedido en la base de datos bajo el nodo del usuario

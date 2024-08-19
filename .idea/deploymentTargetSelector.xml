@@ -4,10 +4,10 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DIALOG" />
-        <DropdownSelection timestamp="2024-08-17T04:41:03.775703800Z">
+        <DropdownSelection timestamp="2024-08-19T01:15:00.349877400Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\Axel\.android\avd\Honor_Axel.avd" />
+              <DeviceId pluginId="PhysicalDevice" identifier="serial=ARGKUT3223000556" />
             </handle>
           </Target>
         </DropdownSelection>
@@ -20,7 +20,7 @@
             </Target>
             <Target type="DEFAULT_BOOT">
               <handle>
-                <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\Axel\.android\avd\Vendedor.avd" />
+                <DeviceId pluginId="PhysicalDevice" identifier="serial=202012000230" />
               </handle>
             </Target>
           </targets>
