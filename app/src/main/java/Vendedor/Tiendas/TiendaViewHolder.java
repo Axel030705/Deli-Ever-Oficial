@@ -1,14 +1,13 @@
 package Vendedor.Tiendas;
 
-
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -16,11 +15,12 @@ import com.example.agenda.R;
 
 public class TiendaViewHolder extends RecyclerView.ViewHolder {
 
-    private final TextView txtNombreTienda;
-    private final TextView txtDescripcionTienda;
-    private final TextView txtDireccionTienda;
-    private final TextView txtExtraTienda;
-    private final ImageView imagenTienda;
+    final TextView txtNombreTienda;
+    final TextView txtDescripcionTienda;
+    final TextView txtDireccionTienda;
+    final TextView txtExtraTienda;
+    final TextView txtEstadoTienda; // Añadido para mostrar el estado
+    final ImageView imagenTienda;
 
     @SuppressLint("NewApi")
     public TiendaViewHolder(View itemView) {
@@ -30,20 +30,17 @@ public class TiendaViewHolder extends RecyclerView.ViewHolder {
         txtDescripcionTienda = itemView.findViewById(R.id.TXTView_DescripcionTienda);
         txtDireccionTienda = itemView.findViewById(R.id.TXTView_DireccionTienda);
         txtExtraTienda = itemView.findViewById(R.id.TXTView_ExtraTienda);
+        txtEstadoTienda = itemView.findViewById(R.id.TXTView_EstadoTienda); // Inicialización del nuevo TextView
         imagenTienda = itemView.findViewById(R.id.ImagenTienda);
 
-        itemView.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                // Obtener la tienda correspondiente al ViewHolder
-                TiendaClase tienda = (TiendaClase) v.getTag();
-
-                // Por ejemplo, mostrar un diálogo con detalles de la tienda
+        itemView.setOnLongClickListener(v -> {
+            TiendaClase tienda = (TiendaClase) v.getTag();
+            // Mostrar detalles solo si la tienda no está cerrada
+            if (!"Cerrado".equals(tienda.getEstado())) {
                 mostrarDetallesTienda(v.getContext(), tienda);
-                return true;
             }
+            return true;
         });
-
     }
 
     public void bind(TiendaClase tienda) {
@@ -53,6 +50,17 @@ public class TiendaViewHolder extends RecyclerView.ViewHolder {
         txtDireccionTienda.setText(tienda.getDireccion());
         txtExtraTienda.setText(tienda.getExtra());
 
+        // Mostrar el estado de la tienda
+        String estado = tienda.getEstado();
+        if ("Cerrado".equals(estado)) {
+            txtEstadoTienda.setText("Cerrado");
+            txtEstadoTienda.setVisibility(View.VISIBLE);
+            itemView.setAlpha(0.5f); // Opcional: hacer que la card sea transparente
+        } else {
+            txtEstadoTienda.setVisibility(View.GONE);
+            itemView.setAlpha(1.0f); // Restaurar opacidad
+        }
+
         Glide.with(imagenTienda.getContext())
                 .load(tienda.getImageUrl())
                 .into(imagenTienda);
@@ -60,7 +68,6 @@ public class TiendaViewHolder extends RecyclerView.ViewHolder {
 
     @SuppressLint("SetTextI18n")
     public void mostrarDetallesTienda(Context context, TiendaClase tienda) {
-
         // Inflar el diseño del diálogo
         View dialogView = LayoutInflater.from(context).inflate(R.layout.detalles_tienda_dialog, null);
 
@@ -73,11 +80,11 @@ public class TiendaViewHolder extends RecyclerView.ViewHolder {
 
         // Establecer valores de las vistas con los detalles de la tienda
         nombreTienda.setText(tienda.getNombre());
-        descripcionTienda.setText("Descripcion: " +tienda.getDescripcion());
-        ubicacionTienda.setText("Ubicacion: " +tienda.getDireccion());
+        descripcionTienda.setText("Descripcion: " + tienda.getDescripcion());
+        ubicacionTienda.setText("Ubicacion: " + tienda.getDireccion());
         extraTienda.setText(tienda.getExtra());
 
-        // Cargar imagen de la tienda utilizando Glide o cualquier otra biblioteca
+        // Cargar imagen de la tienda utilizando Glide
         Glide.with(context)
                 .load(tienda.getImageUrl())
                 .into(imgTienda);
@@ -89,6 +96,4 @@ public class TiendaViewHolder extends RecyclerView.ViewHolder {
         alertDialog.setCancelable(true);
         alertDialog.show();
     }
-
 }
-

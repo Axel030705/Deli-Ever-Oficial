@@ -34,21 +34,25 @@ public class TiendaAdapter extends RecyclerView.Adapter<TiendaViewHolder> {
         TiendaClase tienda = tiendas.get(position);
         holder.bind(tienda);
 
-        // Establecer el OnClickListener en el CardView
-        holder.itemView.setOnClickListener(v -> {
-            // Acción a realizar al hacer clic en el CardView
-            // Redirigir a otra actividad
-            Intent intent = new Intent(v.getContext(), productos_tienda.class);
-            // Puedes pasar datos adicionales a la otra actividad utilizando putExtra()
-            intent.putExtra("tiendaId", tienda.getId()); // Ejemplo de pasar el id de la tienda
-            //Toast.makeText(v.getContext(), tienda.getNombre(), Toast.LENGTH_SHORT).show();
-            v.getContext().startActivity(intent);
-        });
+        // Mostrar el estado en la card
+        if ("Cerrado".equals(tienda.getEstado())) {
+            holder.txtEstadoTienda.setText("Cerrado");
+            holder.txtEstadoTienda.setVisibility(View.VISIBLE);
+            holder.itemView.setOnClickListener(null); // Deshabilitar clic
+            holder.itemView.setAlpha(0.5f); // Opcional: hacer que la card sea transparente
+        } else {
+            holder.txtEstadoTienda.setVisibility(View.GONE);
+            holder.itemView.setOnClickListener(v -> {
+                Intent intent = new Intent(v.getContext(), productos_tienda.class);
+                intent.putExtra("tiendaId", tienda.getId());
+                v.getContext().startActivity(intent);
+            });
+            holder.itemView.setAlpha(1.0f); // Restaurar opacidad
+        }
     }
 
     @Override
     public int getItemCount() {
         return tiendas.size();
     }
-
 }

@@ -8,6 +8,7 @@ import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -18,6 +19,7 @@ import com.bumptech.glide.request.RequestOptions;
 import com.example.agenda.R;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.radiobutton.MaterialRadioButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
@@ -40,6 +42,7 @@ public class Activity_Vendedor extends AppCompatActivity {
     private Uri imageUri;
     private static final int PICK_IMAGE_REQUEST = 1;
     boolean ImagenCargada = false;
+    private String estado;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,7 +71,6 @@ public class Activity_Vendedor extends AppCompatActivity {
         btnRegistrarTienda.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 if (txtNombreTienda.getText().toString().isEmpty() ||
                         txtDescripcionTienda.getText().toString().isEmpty() ||
                         !ImagenCargada) {
@@ -81,6 +83,7 @@ public class Activity_Vendedor extends AppCompatActivity {
                     progressDialog.setMessage("Por favor, espera...");
                     progressDialog.setCancelable(false);
                     progressDialog.show();
+
                     String nombreTienda = txtNombreTienda.getText().toString();
                     String descripcionTienda = txtDescripcionTienda.getText().toString();
                     String direccionTienda = txtDireccionTienda.getText().toString();
@@ -93,7 +96,7 @@ public class Activity_Vendedor extends AppCompatActivity {
                     StorageReference imageRef = storageRef.child("images/" + UUID.randomUUID().toString());
 
                     // Carga la imagen al Storage
-                    uploadImageToFirebaseStorage(imageRef, progressDialog, nombreTienda, descripcionTienda, direccionTienda, extraTienda);
+                    uploadImageToFirebaseStorage(imageRef, progressDialog, nombreTienda, descripcionTienda, direccionTienda, extraTienda, "Cerrado");
                 }
             }
         });
@@ -116,7 +119,7 @@ public class Activity_Vendedor extends AppCompatActivity {
         }
     }
 
-    private void uploadImageToFirebaseStorage(StorageReference imageRef, ProgressDialog progressDialog, String nombreTienda, String descripcionTienda, String direccionTienda, String extraTienda) {
+    private void uploadImageToFirebaseStorage(StorageReference imageRef, ProgressDialog progressDialog, String nombreTienda, String descripcionTienda, String direccionTienda, String extraTienda, String estadoTienda) {
         progressDialog.setTitle("Cargando imagen");
         progressDialog.setMessage("Por favor, espera...");
         progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
@@ -137,7 +140,7 @@ public class Activity_Vendedor extends AppCompatActivity {
                     @Override
                     public void onSuccess(Uri uri) {
                         String imageUrl = uri.toString();
-                        TiendaClase tienda = new TiendaClase(null, nombreTienda, descripcionTienda, direccionTienda, extraTienda, usuarioId, imageUrl);
+                        TiendaClase tienda = new TiendaClase(null, nombreTienda, descripcionTienda, direccionTienda, extraTienda, usuarioId, imageUrl, estadoTienda);
 
                         CircleImageView imagenTienda = findViewById(R.id.ImagenTienda);
                         Glide.with(Activity_Vendedor.this)

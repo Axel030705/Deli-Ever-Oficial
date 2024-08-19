@@ -1,7 +1,5 @@
 package Vendedor;
 
-import static android.content.Intent.getIntent;
-
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Intent;
@@ -9,6 +7,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -17,6 +16,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.TextView;
 
 import com.example.agenda.R;
@@ -42,9 +42,7 @@ import Vendedor.Productos.agregar_producto;
 import Vendedor.Tiendas.EditarTiendaForm;
 import Vendedor.Tiendas.TiendaAdapter;
 import Vendedor.Tiendas.TiendaClase;
-import Vendedor.Vendedor_Main;
 import de.hdodenhof.circleimageview.CircleImageView;
-
 
 public class FragmentInicioV extends Fragment {
 
@@ -58,7 +56,6 @@ public class FragmentInicioV extends Fragment {
     public FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
     public FirebaseUser currentUser = firebaseAuth.getCurrentUser();
     private String tiendaId;
-
 
     public FragmentInicioV() {
         // Required empty public constructor
@@ -77,15 +74,73 @@ public class FragmentInicioV extends Fragment {
 
         ImagenUsuarioVendedor = view.findViewById(R.id.ImagenUsuarioVendedor);
         TXTNombreUsuarioVendedor = view.findViewById(R.id.TXTNombreUsuarioVendedor);
-        String userId = currentUser.getUid();
         recyclerView = view.findViewById(R.id.recyclerViewVendedor);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         adapter = new TiendaAdapter(tiendas);
         recyclerView.setAdapter(adapter);
+
+        SwitchCompat switchButton = view.findViewById(R.id.btn_estado);
+        TextView textViewCerrado = view.findViewById(R.id.textViewCerrado);
+        TextView textViewAbierto = view.findViewById(R.id.textViewAbierto);
         Button Btn_EditarTienda = view.findViewById(R.id.Btn_EditarTienda);
         Button Btn_AgregarProducto = view.findViewById(R.id.Btn_AgregarProducto);
         Button Btn_EliminarTienda = view.findViewById(R.id.Btn_EliminarTienda);
         tiendaId = requireActivity().getIntent().getStringExtra("tiendaId");
+
+        String userId = currentUser.getUid();
+
+        // Obtén el estado de la tienda y configura el SwitchCompat
+        tiendaRef.orderByChild("usuarioAsociado").equalTo(userId).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                tiendas.clear();
+                for (DataSnapshot tiendaSnapshot : dataSnapshot.getChildren()) {
+                    String nombre = tiendaSnapshot.child("nombre").getValue(String.class);
+                    String estado = tiendaSnapshot.child("estado").getValue(String.class);
+
+                    TiendaClase tienda = new TiendaClase(
+                            tiendaSnapshot.child("id").getValue(String.class),
+                            nombre,
+                            tiendaSnapshot.child("descripcion").getValue(String.class),
+                            tiendaSnapshot.child("direccion").getValue(String.class),
+                            tiendaSnapshot.child("extra").getValue(String.class),
+                            tiendaSnapshot.child("usuarioAsociado").getValue(String.class),
+                            tiendaSnapshot.child("imageUrl").getValue(String.class),
+                            estado
+                    );
+                    tiendas.add(tienda);
+
+                    // Configura el SwitchCompat según el estado de la tienda
+                    if (estado != null) {
+                        switchButton.setChecked(estado.equals("Abierto"));
+                        textViewCerrado.setAlpha(estado.equals("Cerrado") ? 1f : 0.5f);
+                        textViewAbierto.setAlpha(estado.equals("Abierto") ? 1f : 0.5f);
+                    }
+                }
+                adapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                // Manejar errores
+            }
+        });
+
+
+        switchButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    textViewCerrado.setAlpha(0.5f);  // Reduce la opacidad de "Cerrado"
+                    textViewAbierto.setAlpha(1f);    // Restaura la opacidad de "Abierto"
+                    cambiarEstadoTienda("Abierto");
+                } else {
+                    textViewCerrado.setAlpha(1f);    // Restaura la opacidad de "Cerrado"
+                    textViewAbierto.setAlpha(0.5f);  // Reduce la opacidad de "Abierto"
+                    cambiarEstadoTienda("Cerrado");
+                }
+            }
+        });
 
         Btn_EditarTienda.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -104,86 +159,15 @@ public class FragmentInicioV extends Fragment {
             }
         });
 
-        tiendaRef.orderByChild("usuarioAsociado").equalTo(userId).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                tiendas.clear();
-                for (DataSnapshot tiendaSnapshot : dataSnapshot.getChildren()) {
-                    String nombre = tiendaSnapshot.child("nombre").getValue(String.class);
-                    String descripcion = tiendaSnapshot.child("descripcion").getValue(String.class);
-                    String direccion = tiendaSnapshot.child("direccion").getValue(String.class);
-                    String extra = tiendaSnapshot.child("extra").getValue(String.class);
-                    String usuarioAsociado = tiendaSnapshot.child("usuarioAsociado").getValue(String.class);
-                    String imageUrl = tiendaSnapshot.child("imageUrl").getValue(String.class);
-                    String tiendaId = tiendaSnapshot.child("id").getValue(String.class);
-                    TiendaClase tienda = new TiendaClase(tiendaId, nombre, descripcion, direccion, extra, usuarioAsociado, imageUrl);
-                    tiendas.add(tienda);
-                }
-                adapter.notifyDataSetChanged();
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-            }
-        });
-
-        DatabaseReference usuariosRef = FirebaseDatabase.getInstance().getReference("Usuarios").child(userId);
-        usuariosRef.child("nombre").addListenerForSingleValueEvent(new ValueEventListener() {
-            @SuppressLint("SetTextI18n")
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    String nombreUsuario = dataSnapshot.getValue(String.class);
-                    TXTNombreUsuarioVendedor.setText("Bienvenido(a): " + " " + nombreUsuario);
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-            }
-        });
-
-        /*ImagenUsuarioVendedor.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(requireActivity(), Perfil_Activity.class);
-                startActivity(intent);
-            }
-        }); */
-
-        usuariosRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                String imageUrl = dataSnapshot.child("imagenPerfil").child("url").getValue(String.class);
-                if (imageUrl != null) {
-                    Picasso.get().load(imageUrl).into(ImagenUsuarioVendedor);
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-
         Btn_EliminarTienda.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                String userId = currentUser.getUid();
-
-                // Obtén una referencia a la base de datos de Firebase
-                DatabaseReference databaseRef = FirebaseDatabase.getInstance().getReference();
-
                 AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
                 builder.setTitle("Advertencia!")
                         .setMessage("Deseas eliminar la tienda y todo lo relacionado con esta?")
                         .setPositiveButton("Aceptar", (dialog, which) -> {
-
                             // Busca la tienda asociada al usuario vendedor
-                            databaseRef.child("Tienda")
-                                    .orderByChild("usuarioAsociado")
-                                    .equalTo(userId)
+                            tiendaRef.orderByChild("usuarioAsociado").equalTo(userId)
                                     .addListenerForSingleValueEvent(new ValueEventListener() {
                                         @Override
                                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -204,59 +188,90 @@ public class FragmentInicioV extends Fragment {
                                     });
                         })
                         .show();
-
             }
         });
 
+        DatabaseReference usuariosRef = FirebaseDatabase.getInstance().getReference("Usuarios").child(userId);
+        usuariosRef.child("nombre").addListenerForSingleValueEvent(new ValueEventListener() {
+            @SuppressLint("SetTextI18n")
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    String nombreUsuario = dataSnapshot.getValue(String.class);
+                    TXTNombreUsuarioVendedor.setText("Bienvenido(a): " + " " + nombreUsuario);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                // Manejar errores
+            }
+        });
+
+        usuariosRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                String imageUrl = dataSnapshot.child("imagenPerfil").child("url").getValue(String.class);
+                if (imageUrl != null) {
+                    Picasso.get().load(imageUrl).into(ImagenUsuarioVendedor);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                // Manejar errores
+            }
+        });
     }
 
+    private void cambiarEstadoTienda(String nuevoEstado) {
+        String userId = currentUser.getUid();
+
+                    tiendaRef.orderByChild("usuarioAsociado").equalTo(userId).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            for (DataSnapshot tiendaSnapshot : dataSnapshot.getChildren()) {
+                                String tiendaId = tiendaSnapshot.child("id").getValue(String.class);
+                                if (tiendaId != null) {
+                                    DatabaseReference tiendaRef = database.getReference("Tienda").child(tiendaId);
+                                    tiendaRef.child("estado").setValue(nuevoEstado)
+                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                @Override
+                                                public void onSuccess(Void aVoid) {
+                                                    // Actualización exitosa
+                                                }
+                                            })
+                                            .addOnFailureListener(new OnFailureListener() {
+                                                @Override
+                                                public void onFailure(@NonNull Exception e) {
+                                                    // Manejar errores
+                                                }
+                                            });
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+                            // Manejar errores
+                        }
+                    });
+    }
 
     private void EliminarTienda(String tiendaId, String imageUrl) {
-        DatabaseReference databaseRef = FirebaseDatabase.getInstance().getReference();
-        DatabaseReference tiendaRef = databaseRef.child("Tienda").child(tiendaId);
+        DatabaseReference tiendaRef = FirebaseDatabase.getInstance().getReference("Tienda").child(tiendaId);
 
-        tiendaRef.removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void aVoid) {
-                // Tienda eliminada con éxito de la base de datos
-
-                // Eliminar imágenes relacionadas con la tienda desde Firebase Storage
-                StorageReference storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl);
-
-                // Elimina la imagen directamente
-                storageRef.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        // Imagen eliminada con éxito
-                        mostrarMensaje("La tienda se ha eliminado con éxito.");
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-
-                    }
-                });
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                // Manejar errores si no se pudo eliminar la tienda de la base de datos
-                mostrarMensaje("Error al eliminar la tienda. Inténtalo de nuevo.");
-            }
-        });
-
-    }
-
-    private void mostrarMensaje(String mensaje) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-        builder.setTitle("Mensaje")
-                .setMessage(mensaje)
-                .setPositiveButton("Aceptar", (dialog, which) -> {
-                    // Redirigir al usuario a una actividad de inicio de sesión o página principal
-                    startActivity(new Intent(requireActivity(), Activity_Vendedor.class));
-                    getActivity().finish(); // Cerrar la actividad
+        tiendaRef.removeValue()
+                .addOnSuccessListener(aVoid -> {
+                    StorageReference storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl);
+                    storageRef.delete().addOnSuccessListener(aVoid1 -> {
+                        // Imagen eliminada exitosamente
+                    }).addOnFailureListener(exception -> {
+                        // Error al eliminar la imagen
+                    });
                 })
-                .show();
-
-}
+                .addOnFailureListener(exception -> {
+                    // Error al eliminar la tienda
+                });
+    }
 }

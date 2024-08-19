@@ -8,12 +8,13 @@ public class TiendaClase {
     private String extra;
     private String usuarioAsociado;
     private String imageUrl;
+    private String estado;
 
     public TiendaClase() {
         // Constructor sin parámetros
     }
 
-    public TiendaClase(String id, String nombre, String descripcion, String direccion, String extra, String usuarioAsociado, String imageUrl) {
+    public TiendaClase(String id, String nombre, String descripcion, String direccion, String extra, String usuarioAsociado, String imageUrl,String estado) {
         this.id = id;
         this.nombre = nombre;
         this.descripcion = descripcion;
@@ -21,6 +22,7 @@ public class TiendaClase {
         this.extra = extra;
         this.usuarioAsociado = usuarioAsociado;
         this.imageUrl = imageUrl;
+        this.estado = estado;
     }
 
     public String getId() {
@@ -81,4 +83,11 @@ public class TiendaClase {
         this.imageUrl = imageUrl;
     }
 
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
 }

@@ -84,13 +84,18 @@ public class FragmentInicio extends Fragment {
                     String direccion = tiendaSnapshot.child("direccion").getValue(String.class);
                     String extra = tiendaSnapshot.child("extra").getValue(String.class);
                     String usuarioAsociado = tiendaSnapshot.child("usuarioAsociado").getValue(String.class);
+                    //Obtener estado de la tienda
+                    String estado = tiendaSnapshot.child("estado").getValue(String.class);
+                    if ("Cerrado".equals(estado)) {
+
+                    }
 
                     // Obtener la URL de descarga de la imagen
                     String imageUrl = tiendaSnapshot.child("imageUrl").getValue(String.class);
 
                     // Crear una instancia de TiendaClase con los datos obtenidos
                     String tiendaId = tiendaSnapshot.child("id").getValue(String.class);
-                    TiendaClase tienda = new TiendaClase(tiendaId, nombre, descripcion, direccion, extra, usuarioAsociado, imageUrl);
+                    TiendaClase tienda = new TiendaClase(tiendaId, nombre, descripcion, direccion, extra, usuarioAsociado, imageUrl, estado);
 
                     // Agregar la tienda a la lista
                     tiendas.add(tienda);
