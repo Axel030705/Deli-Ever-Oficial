@@ -36,7 +36,6 @@ public class TiendaAdapter extends RecyclerView.Adapter<TiendaViewHolder> {
 
         // Mostrar el estado en la card
         if ("Cerrado".equals(tienda.getEstado())) {
-            holder.txtEstadoTienda.setText("Cerrado");
             holder.txtEstadoTienda.setVisibility(View.VISIBLE);
             holder.itemView.setOnClickListener(null); // Deshabilitar clic
             holder.itemView.setAlpha(0.5f); // Opcional: hacer que la card sea transparente

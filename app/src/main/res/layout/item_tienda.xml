@@ -68,12 +68,26 @@
         android:textSize="14sp"
         tools:ignore="HardcodedText"/>
 
-    <TextView
+    <LinearLayout
         android:id="@+id/TXTView_EstadoTienda"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="@android:color/holo_red_dark"
-        android:textSize="14sp"
-        android:visibility="gone"/>
+        android:layout_width="395dp"
+        android:layout_height="150dp"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cerrado"
+            android:textStyle="bold"
+            android:textSize="30sp"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="50dp"
+            android:rotation="-45"
+            android:textColor="@color/black"
+            tools:ignore="HardcodedText" />
+
+
+    </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>

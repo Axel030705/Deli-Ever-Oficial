@@ -6,6 +6,7 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
@@ -19,7 +20,7 @@ public class TiendaViewHolder extends RecyclerView.ViewHolder {
     final TextView txtDescripcionTienda;
     final TextView txtDireccionTienda;
     final TextView txtExtraTienda;
-    final TextView txtEstadoTienda; // Añadido para mostrar el estado
+    final LinearLayout txtEstadoTienda;
     final ImageView imagenTienda;
 
     @SuppressLint("NewApi")
@@ -30,7 +31,7 @@ public class TiendaViewHolder extends RecyclerView.ViewHolder {
         txtDescripcionTienda = itemView.findViewById(R.id.TXTView_DescripcionTienda);
         txtDireccionTienda = itemView.findViewById(R.id.TXTView_DireccionTienda);
         txtExtraTienda = itemView.findViewById(R.id.TXTView_ExtraTienda);
-        txtEstadoTienda = itemView.findViewById(R.id.TXTView_EstadoTienda); // Inicialización del nuevo TextView
+        txtEstadoTienda = itemView.findViewById(R.id.TXTView_EstadoTienda);
         imagenTienda = itemView.findViewById(R.id.ImagenTienda);
 
         itemView.setOnLongClickListener(v -> {
@@ -53,7 +54,6 @@ public class TiendaViewHolder extends RecyclerView.ViewHolder {
         // Mostrar el estado de la tienda
         String estado = tienda.getEstado();
         if ("Cerrado".equals(estado)) {
-            txtEstadoTienda.setText("Cerrado");
             txtEstadoTienda.setVisibility(View.VISIBLE);
             itemView.setAlpha(0.5f); // Opcional: hacer que la card sea transparente
         } else {
