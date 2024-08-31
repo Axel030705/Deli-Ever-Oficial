@@ -1,7 +1,12 @@
 package Vendedor;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -13,10 +18,13 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.example.agenda.R;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.radiobutton.MaterialRadioButton;
@@ -29,8 +37,12 @@ import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
+import Vendedor.Productos.vista_producto;
 import Vendedor.Tiendas.TiendaClase;
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -42,7 +54,8 @@ public class Activity_Vendedor extends AppCompatActivity {
     private Uri imageUri;
     private static final int PICK_IMAGE_REQUEST = 1;
     boolean ImagenCargada = false;
-    private String estado;
+    private FusedLocationProviderClient fusedLocationClient;
+    private EditText txtDireccionTienda;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,12 +67,20 @@ public class Activity_Vendedor extends AppCompatActivity {
         assert user != null;
         usuarioId = user.getUid();
 
+        //Ubicaciones
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 100);
+        }
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
         EditText txtNombreTienda = findViewById(R.id.txt_NombreTienda);
         EditText txtDescripcionTienda = findViewById(R.id.txt_DescripcionTienda);
-        EditText txtDireccionTienda = findViewById(R.id.txt_DireccionTienda);
+        txtDireccionTienda = findViewById(R.id.txt_DireccionTienda);
         EditText txtExtraTienda = findViewById(R.id.txt_ExtraTienda);
         Button btnRegistrarTienda = findViewById(R.id.Btn_RegistrarTienda);
         CircleImageView imagenTienda = findViewById(R.id.ImagenTienda);
+        fetchLocationAndSet();
 
         imagenTienda.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -183,4 +204,36 @@ public class Activity_Vendedor extends AppCompatActivity {
         });
         progressDialog.show();
     }
+
+    @SuppressLint("SetTextI18n")
+    private void fetchLocationAndSet() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
+                if (location != null) {
+                    // Use the location object to get the latitude and longitude
+                    double latitude = location.getLatitude();
+                    double longitude = location.getLongitude();
+
+                    // Convert the latitude and longitude into a user-friendly address using Geocoder
+                    Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+                    try {
+                        List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
+                        if (addresses != null && !addresses.isEmpty()) {
+                            Address address = addresses.get(0);
+                            String fullAddress = address.getAddressLine(0);
+                            txtDireccionTienda.setText(fullAddress);
+                        } else {
+                            txtDireccionTienda.setText("No se puede determinar la dirección");
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        txtDireccionTienda.setText("No se puede determinar la dirección");
+                    }
+                } else {
+                    Toast.makeText(Activity_Vendedor.this, "No se puede determinar la dirección", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+    }
+
 }

@@ -50,14 +50,6 @@ public class SplashScreen extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        /*GifImageView gifbarra = findViewById(R.id.bp);
-        try {
-            GifDrawable gifDrawable = new GifDrawable(getResources(), R.raw.bp);
-            gifbarra.setImageDrawable(gifDrawable);
-        } catch (Exception e) {
-            e.printStackTrace();
-        } */
-
     }
 
     private void VerificarUsuario(){

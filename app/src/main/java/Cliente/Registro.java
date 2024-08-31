@@ -1,11 +1,16 @@
 package Cliente;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Patterns;
 import android.view.View;
@@ -20,6 +25,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.example.agenda.R;
 import Perfil.Ubicacion;
@@ -28,14 +34,19 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.messaging.FirebaseMessaging;
 
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 
 import Vendedor.MainActivityEspera;
+import Vendedor.Productos.vista_producto;
 import Vendedor.SolicitudesVendedores;
 import Vendedor.Tiendas.Tiendas_Activity;
 
@@ -49,17 +60,12 @@ public class Registro extends AppCompatActivity {
     private FirebaseAuth firebaseAuth;
     private ProgressDialog progressDialog;
     private FusedLocationProviderClient fusedLocationClient;
-    private LocationCallback locationCallback;
-    private String nombre = "", correo = "", password = "", confirmarpassword = "", tipoUsuario = "", txt_vendera2 = "";
-    private double latitud, longitud; // Variables para almacenar la ubicación
+    private String nombre = "", correo = "", password = "", confirmarpassword = "", tipoUsuario, txt_vendera2, direccionUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_registro);
-
-        // Inicializar FusedLocationProviderClient
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         // Inicializar los componentes de la UI
         spinner = findViewById(R.id.spinner);
@@ -82,123 +88,81 @@ public class Registro extends AppCompatActivity {
         progressDialog.setTitle("Espere por favor");
         progressDialog.setCanceledOnTouchOutside(false);
 
-        spinner.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                String tipoSeleccionado = (String) spinner.getAdapter().getItem(i);
-                txt_vendera.setVisibility("Vendedor".equals(tipoSeleccionado) ? View.VISIBLE : View.GONE);
-            }
+        spinner.setOnItemClickListener((adapterView, view, i, l) -> {
+            String tipoSeleccionado = (String) spinner.getAdapter().getItem(i);
+            txt_vendera.setVisibility("Vendedor".equals(tipoSeleccionado) ? View.VISIBLE : View.GONE);
         });
 
-        Btn_RegistrarUsuario.setOnClickListener(view -> obtenerUbicacionYValidarDatos());
-
+        Btn_RegistrarUsuario.setOnClickListener(view -> ValidarDatos());
         TengoCuentaTXT.setOnClickListener(view -> startActivity(new Intent(Registro.this, Login.class)));
 
-        locationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                if (locationResult != null && locationResult.getLastLocation() != null) {
-                    latitud = locationResult.getLastLocation().getLatitude();
-                    longitud = locationResult.getLastLocation().getLongitude();
-                } else {
-                    Toast.makeText(Registro.this, "No se pudo obtener la ubicación.", Toast.LENGTH_SHORT).show();
-                }
-            }
-        };
+        // Inicializar FusedLocationProviderClient
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        checkLocationPermission();
     }
 
     private void checkLocationPermission() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
-            ActivityCompat.requestPermissions(this, new String[]{
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-            }, REQUEST_LOCATION_PERMISSION);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            obtenerUbicacion();
+            Btn_RegistrarUsuario.setVisibility(View.VISIBLE); // Mostrar botón si el permiso ya está concedido
         } else {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(this, new String[]{
-                            Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                    }, REQUEST_LOCATION_PERMISSION);
-                    return;
-                }
-            }
-            obtenerUbicacionUsuario();
+            Btn_RegistrarUsuario.setVisibility(View.GONE); // Ocultar botón si el permiso no está concedido
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_LOCATION_PERMISSION);
         }
+    }
+
+    @SuppressLint("MissingPermission")
+    private void obtenerUbicacion() {
+        fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
+            if (location != null) {
+                double latitude = location.getLatitude();
+                double longitude = location.getLongitude();
+
+                Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+                try {
+                    List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
+                    if (addresses != null && !addresses.isEmpty()) {
+                        Address address = addresses.get(0);
+                        String streetAddress = address.getThoroughfare();
+                        String streetNumber = address.getSubThoroughfare();
+                        String locality = address.getLocality();
+                        direccionUser = (streetAddress != null ? streetAddress + " " : "") + (streetNumber != null ? streetNumber : "") + (locality != null ? ", " + locality : "");
+                    }
+                } catch (IOException e) {
+                    Toast.makeText(Registro.this, "Error al obtener la dirección", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Toast.makeText(Registro.this, "No se puede determinar la ubicación", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
         if (requestCode == REQUEST_LOCATION_PERMISSION) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
-                        !hasPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION, permissions, grantResults)) {
-                    ActivityCompat.requestPermissions(this, new String[]{
-                            Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                    }, REQUEST_LOCATION_PERMISSION);
-                } else {
-                    obtenerUbicacionUsuario();
-                }
+                obtenerUbicacion();
+                Btn_RegistrarUsuario.setVisibility(View.VISIBLE); // Mostrar botón si el permiso es concedido
             } else {
-                Toast.makeText(this, "Permiso de ubicación denegado", Toast.LENGTH_SHORT).show();
+                mostrarSnackbarPermisoDenegado();
             }
         }
     }
 
-    private boolean hasPermission(String permission, String[] permissions, int[] grantResults) {
-        for (int i = 0; i < permissions.length; i++) {
-            if (permissions[i].equals(permission) && grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                return true;
-            }
-        }
-        return false;
-    }
+    private void mostrarSnackbarPermisoDenegado() {
+        Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content),
+                        "Permiso de ubicación denegado (Es necesario para el uso correcto de la aplicación)",
+                        Snackbar.LENGTH_INDEFINITE)
+                .setAction("Configurar", view -> {
+                    Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                    intent.setData(Uri.parse("package:" + getPackageName()));
+                    startActivity(intent);
+                    finish();
+                });
 
-    private void obtenerUbicacionUsuario() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
-            ActivityCompat.requestPermissions(this, new String[]{
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-            }, REQUEST_LOCATION_PERMISSION);
-
-            return;
-        }
-
-        LocationRequest locationRequest = LocationRequest.create();
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        locationRequest.setInterval(10000);
-        locationRequest.setFastestInterval(5000);
-
-        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, getMainLooper());
-    }
-
-    private void obtenerUbicacionYValidarDatos() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
-            ActivityCompat.requestPermissions(this, new String[]{
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-            }, REQUEST_LOCATION_PERMISSION);
-
-            return;
-        }
-
-        fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
-            if (location != null) {
-                latitud = location.getLatitude();
-                longitud = location.getLongitude();
-            }
-            ValidarDatos();
-        }).addOnFailureListener(e -> {
-            Toast.makeText(Registro.this, "No se pudo obtener la ubicación.", Toast.LENGTH_SHORT).show();
-            ValidarDatos();
-        });
+        snackbar.show();
     }
 
     private void ValidarDatos() {
@@ -219,9 +183,7 @@ public class Registro extends AppCompatActivity {
             Toast.makeText(this, "Confirme su contraseña", Toast.LENGTH_SHORT).show();
         } else if (!password.equals(confirmarpassword)) {
             Toast.makeText(this, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show();
-        } /*else if (TextUtils.isEmpty(tipoUsuario)) {
-            Toast.makeText(this, "Seleccione su tipo de usuario", Toast.LENGTH_SHORT).show();
-        }*/ else if ("Vendedor".equals(tipoUsuario) && TextUtils.isEmpty(txt_vendera2)) {
+        } else if ("Vendedor".equals(tipoUsuario) && TextUtils.isEmpty(txt_vendera2)) {
             Toast.makeText(this, "Ingrese el nombre de su tienda", Toast.LENGTH_SHORT).show();
         } else {
             RegistrarUsuario();
@@ -246,7 +208,7 @@ public class Registro extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     progressDialog.dismiss();
-                    Toast.makeText(Registro.this, "" + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(Registro.this, "Error al registrar usuario: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 
@@ -254,7 +216,6 @@ public class Registro extends AppCompatActivity {
         progressDialog.setMessage("Guardando su información");
 
         String uid = firebaseAuth.getUid();
-
         HashMap<String, Object> Datos = new HashMap<>();
         Datos.put("uid", uid);
         Datos.put("correo", correo);
@@ -262,8 +223,7 @@ public class Registro extends AppCompatActivity {
         Datos.put("password", password);
         Datos.put("Tipo de usuario", tipoUsuario);
         Datos.put("Vendera", txt_vendera2);
-        Datos.put("latitud", latitud); // Guardar latitud
-        Datos.put("longitud", longitud); // Guardar longitud
+        Datos.put("direccion", direccionUser);
 
         if (token != null) {
             Datos.put("tokenFCM", token);
@@ -278,7 +238,7 @@ public class Registro extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     progressDialog.dismiss();
-                    Toast.makeText(Registro.this, "" + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(Registro.this, "Error al guardar la información: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 
@@ -294,17 +254,9 @@ public class Registro extends AppCompatActivity {
         } else if("Administrador".equals(password)){
             Intent intent = new Intent(this, SolicitudesVendedores.class);
             startActivity(intent);
-        }else{
+        } else {
             Toast.makeText(Registro.this, "Tipo de usuario no válido", Toast.LENGTH_SHORT).show();
         }
         finish();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (fusedLocationClient != null && locationCallback != null) {
-            fusedLocationClient.removeLocationUpdates(locationCallback);
-        }
     }
 }

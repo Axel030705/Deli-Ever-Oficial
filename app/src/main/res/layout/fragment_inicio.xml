@@ -5,9 +5,8 @@
     android:layout_height="match_parent"
     tools:context="Cliente.FragmentInicio">
 
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    <LinearLayout
         xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#FFFFFF"
@@ -73,13 +72,15 @@
             android:paddingTop="15dp">
 
             <TextView
+                android:id="@+id/textView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:text="Tiendas disponibles"
                 android:textSize="25sp"
                 android:textColor="@color/black"
                 tools:ignore="HardcodedText"
-                android:textAlignment="center"/>
+                android:textAlignment="center"
+                android:visibility="visible"/>
 
         </LinearLayout>
 
@@ -87,8 +88,34 @@
             android:id="@+id/recyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:paddingTop="20dp">
+            android:paddingTop="20dp"
+            android:visibility="visible">
         </androidx.recyclerview.widget.RecyclerView>
+
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/NoTiendas"
+            android:layout_width="280dp"
+            android:layout_height="280dp"
+            android:layout_gravity="center"
+            android:layout_marginTop="130dp"
+            app:lottie_autoPlay="true"
+            app:lottie_fileName="bolsita2.json"
+            app:lottie_imageAssetsFolder="assets"
+            android:visibility="gone"
+            app:lottie_loop="true"/>
+
+        <TextView
+            android:id="@+id/textViewNoTiendas"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="No hay tiendas registradas"
+            android:textSize="25sp"
+            android:textColor="@color/black"
+            tools:ignore="HardcodedText"
+            android:textAlignment="center"
+            android:layout_gravity="center"
+            android:visibility="gone"/>
 
     </LinearLayout>
 

@@ -1,13 +1,13 @@
 package Vendedor.Productos;
 
 
-import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.NotificationManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -19,12 +19,10 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-
 import com.bumptech.glide.Glide;
 import com.example.agenda.R;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -37,14 +35,13 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.messaging.FirebaseMessaging;
-
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-
+import java.util.Objects;
 import Cliente.Pedidos.PedidoClase;
 import Vendedor.Tiendas.Tiendas_Activity;
 
@@ -61,11 +58,9 @@ public class vista_producto extends AppCompatActivity {
     public String nombreUsr;
     //Variables pedido
     public double precioTotal;
-    private double latitud;
-    private double longitud;
-
-    //Noti
-    private static final String CHANNEL_ID = "my_channel";
+    private String ubicacionV;
+    public String propina;
+    EditText txt_ubicacion;
 
     //Ubicaciones
     private FusedLocationProviderClient fusedLocationClient;
@@ -76,11 +71,13 @@ public class vista_producto extends AppCompatActivity {
         setContentView(R.layout.activity_vista_producto);
 
         //Ubicaciones
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 100);
+        }
+
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         FirebaseApp.initializeApp(this);
-        // Inicializar el NotificationManager
-        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         imgProducto = findViewById(R.id.imgProducto);
         textNombreProducto = findViewById(R.id.textNombreProducto);
         textDescripcionProducto = findViewById(R.id.textDescripcionProducto);
@@ -100,11 +97,10 @@ public class vista_producto extends AppCompatActivity {
         productoCantidad = getIntent().getStringExtra("productoCantidad");
         CargarProducto();
         Logicas();
-        obtenerToken();
         ///////////////////////////////////////////////////////////////////////////////
         firebaseAuth = FirebaseAuth.getInstance();
         usersRef = FirebaseDatabase.getInstance().getReference("Usuarios");
-        userId = firebaseAuth.getCurrentUser().getUid();
+        userId = Objects.requireNonNull(firebaseAuth.getCurrentUser()).getUid();
         userRef = usersRef.child(userId);
         userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @SuppressLint("SetTextI18n")
@@ -118,6 +114,7 @@ public class vista_producto extends AppCompatActivity {
                     if (tipo.equals("Vendedor")) {
                         Btn_EditarProducto.setVisibility(View.VISIBLE);
                         Btn_EliminarProducto.setVisibility(View.VISIBLE);
+                        Btn_comprarProducto.setVisibility(View.GONE);
                     } else if (tipo.equals("Cliente")) {
                         Btn_EditarProducto.setVisibility(View.GONE);
                         Btn_EliminarProducto.setVisibility(View.GONE);
@@ -134,22 +131,6 @@ public class vista_producto extends AppCompatActivity {
 
     }
 
-    private void obtenerToken() {
-        FirebaseMessaging.getInstance().getToken()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        // Token generado exitosamente
-                        String token = task.getResult();
-                        Log.d(TAG, "Token: " + token);
-
-                        // Puedes almacenar este token o utilizarlo directamente para enviar notificaciones.
-                    } else {
-                        // Ocurrió un error al obtener el token
-                        Log.w(TAG, "No se pudo obtener el token", task.getException());
-                    }
-                });
-    }
-
     @SuppressLint("SetTextI18n")
     public void CargarProducto() {
 
@@ -158,9 +139,7 @@ public class vista_producto extends AppCompatActivity {
         textPrecioProducto.setText("MX $" + productoPrecio);
         textExtraProducto.setText(productoExtra);
         textCantidadProducto.setText("Cantidad disponible: " + productoCantidad);
-        Glide.with(imgProducto.getContext())
-                .load(productoImg)
-                .into(imgProducto);
+        Glide.with(imgProducto.getContext()).load(productoImg).into(imgProducto);
     }
 
     public void EditarProductoActivity(View view) {
@@ -200,8 +179,12 @@ public class vista_producto extends AppCompatActivity {
         TextView textNombreProducto2 = bottomSheetView.findViewById(R.id.textNombreProducto2);
         TextView textPrecioProducto2 = bottomSheetView.findViewById(R.id.textPrecioProducto2);
         AutoCompleteTextView cantidad = bottomSheetView.findViewById(R.id.cantidad2);
-        EditText txt_ubicacion = bottomSheetView.findViewById(R.id.txt_ubicacion);
+        txt_ubicacion = bottomSheetView.findViewById(R.id.txt_ubicacion);
+        //EditText txt_propina = bottomSheetView.findViewById(R.id.txt_propina);
         Button Btn_finalizarProducto2 = bottomSheetView.findViewById(R.id.Btn_finalizarProducto2);
+        fetchLocationAndSet();
+
+
         cantidad.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @SuppressLint("SetTextI18n")
             @Override
@@ -221,8 +204,6 @@ public class vista_producto extends AppCompatActivity {
                 // Calcula el precio total multiplicando la cantidad por el precio unitario
                 double precioUnitario = Double.parseDouble(productoPrecio);
                 precioTotal = cantidad * precioUnitario;
-
-                // Establece el texto del botón con el precio total
                 Btn_finalizarProducto2.setText("Comprar MX $" + precioTotal);
             }
         });
@@ -248,106 +229,161 @@ public class vista_producto extends AppCompatActivity {
         // Muestra el BottomSheet
         bottomSheetDialog.show();
 
-        Btn_finalizarProducto2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // Obtener la cantidad seleccionada del AutoCompleteTextView
-                String cantidadSeleccionada = cantidad.getText().toString();
-                if (cantidadSeleccionada.isEmpty()) {
-                    Toast.makeText(vista_producto.this, "Selecciona una cantidad", Toast.LENGTH_SHORT).show();
-                } else if (txt_ubicacion.getText().toString().isEmpty()) {
-                    Toast.makeText(vista_producto.this, "Indica una dirección", Toast.LENGTH_SHORT).show();
-                } else {
-                    firebaseAuth = FirebaseAuth.getInstance();
-                    usersRef = FirebaseDatabase.getInstance().getReference("Usuarios");
-                    userId = firebaseAuth.getCurrentUser().getUid();
-                    userRef = usersRef.child(userId);
+        Btn_finalizarProducto2.setOnClickListener(view1 -> {
+            // Obtener la cantidad seleccionada del AutoCompleteTextView
+            String cantidadSeleccionada = cantidad.getText().toString();
+            if (cantidadSeleccionada.isEmpty()) {
+                Toast.makeText(vista_producto.this, "Selecciona una cantidad", Toast.LENGTH_SHORT).show();
+            } else if (txt_ubicacion.getText().toString().isEmpty()) {
+                Toast.makeText(vista_producto.this, "Indica una dirección", Toast.LENGTH_SHORT).show();
+            } else {
+                firebaseAuth = FirebaseAuth.getInstance();
+                usersRef = FirebaseDatabase.getInstance().getReference("Usuarios");
+                userId = Objects.requireNonNull(firebaseAuth.getCurrentUser()).getUid();
+                userRef = usersRef.child(userId);
 
-                    // Obtener la fecha y hora actual
-                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-                    String fechaHoraActual = sdf.format(new Date());
+                // Obtener la fecha y hora actual
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                String fechaHoraActual = sdf.format(new Date());
 
-                    // Obtén el ID único para el nuevo pedido
-                    String nuevoPedidoId = userRef.child("Pedidos").push().getKey();
+                // Obtén el ID único para el nuevo pedido
+                String nuevoPedidoId = userRef.child("Pedidos").push().getKey();
 
-                    // Convertir de Double a String
-                    String precioTotalString = String.valueOf(precioTotal);
+                // Convertir de Double a String
+                String precioTotalString = String.valueOf(precioTotal);
 
-                    // Crea una instancia del modelo de PedidoClase con datos reales
-                    PedidoClase nuevoPedido = new PedidoClase(
-                            nuevoPedidoId,
-                            fechaHoraActual,
-                            nombreUsr,
-                            txt_ubicacion.getText().toString(),
-                            productoNombre,
-                            precioTotalString,
-                            "Pendiente",
-                            "Ninguno",
-                            idTienda,
-                            productoImg,
-                            cantidadSeleccionada,
-                            userId,
-                            productoId,
-                            "No",
-                            "",
-                            ""
-                    );
+                //Obtener la propina
+                //propina = txt_propina.getText().toString();
 
-                    // Guarda el nuevo pedido en la base de datos bajo el nodo del usuario
-                    userRef.child("Pedidos").child(nuevoPedidoId).setValue(nuevoPedido)
-                            .addOnCompleteListener(task -> {
-                                if (task.isSuccessful()) {
-                                    // Actualiza correctamente el pedido del usuario
+                // Crea una instancia del modelo de PedidoClase con datos reales
+                PedidoClase nuevoPedido = new PedidoClase(nuevoPedidoId, fechaHoraActual, nombreUsr, txt_ubicacion.getText().toString(), productoNombre, precioTotalString, "Pendiente", "Ninguno", idTienda, productoImg, cantidadSeleccionada, userId, productoId, "No", "", "", "0"
 
-                                    // Actualiza la información del pedido en la tienda
-                                    DatabaseReference databaseRef = FirebaseDatabase.getInstance().getReference();
-                                    DatabaseReference storeOrdersRef = databaseRef.child("Tienda").child(idTienda).child("Pedidos");
-                                    storeOrdersRef.child(nuevoPedidoId).setValue(nuevoPedido)
-                                            .addOnCompleteListener(storeTask -> {
-                                                if (storeTask.isSuccessful()) {
-                                                    // Éxito al actualizar la información del pedido en la tienda
+                );
 
-                                                    // Actualiza la cantidad disponible en la base de datos
-                                                    int cantidadComprada = Integer.parseInt(cantidadSeleccionada);
-                                                    DatabaseReference productRef = databaseRef.child("Tienda").child(idTienda).child("productos").child(productoId);
-                                                    productRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                                                        @Override
-                                                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                                            if (dataSnapshot.exists()) {
-                                                                int cantidadDisponible = Integer.parseInt(dataSnapshot.child("cantidad").getValue(String.class));
-                                                                int nuevaCantidadDisponible = cantidadDisponible - cantidadComprada;
-                                                                String nuevaCantidadDisponibleString = String.valueOf(nuevaCantidadDisponible);
-                                                                productRef.child("cantidad").setValue(nuevaCantidadDisponibleString);
-                                                                // Aquí puedes hacer algo más si es necesario
+                // Guarda el nuevo pedido en la base de datos bajo el nodo del usuario
+                assert nuevoPedidoId != null;
+                userRef.child("Pedidos").child(nuevoPedidoId).setValue(nuevoPedido).addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        // Actualiza correctamente el pedido del usuario
 
-                                                                textCantidadProducto.setText("Cantidad disponible: " + nuevaCantidadDisponibleString);
+                        // Actualiza la información del pedido en la tienda
+                        DatabaseReference databaseRef = FirebaseDatabase.getInstance().getReference();
+                        DatabaseReference storeOrdersRef = databaseRef.child("Tienda").child(idTienda).child("Pedidos");
+                        storeOrdersRef.child(nuevoPedidoId).setValue(nuevoPedido).addOnCompleteListener(storeTask -> {
+                            if (storeTask.isSuccessful()) {
+                                // Éxito al actualizar la información del pedido en la tienda
 
+                                // Actualiza la cantidad disponible en la base de datos
+                                int cantidadComprada = Integer.parseInt(cantidadSeleccionada);
+                                DatabaseReference productRef = databaseRef.child("Tienda").child(idTienda).child("productos").child(productoId);
+                                productRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                        if (dataSnapshot.exists()) {
+                                            int cantidadDisponible = Integer.parseInt(Objects.requireNonNull(dataSnapshot.child("cantidad").getValue(String.class)));
+                                            int nuevaCantidadDisponible = cantidadDisponible - cantidadComprada;
+                                            String nuevaCantidadDisponibleString = String.valueOf(nuevaCantidadDisponible);
+                                            productRef.child("cantidad").setValue(nuevaCantidadDisponibleString);
+                                            // Aquí puedes hacer algo más si es necesario
+
+                                            textCantidadProducto.setText("Cantidad disponible: " + nuevaCantidadDisponibleString);
+
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                                        // Manejar errores de la consulta
+                                    }
+                                });
+
+                                Toast.makeText(vista_producto.this, "Pedido realizado con éxito", Toast.LENGTH_SHORT).show();
+                                bottomSheetDialog.dismiss();
+
+                                userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @SuppressLint("SetTextI18n")
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                        if (dataSnapshot.exists()) {
+                                            String tipo = dataSnapshot.child("Tipo de usuario").getValue(String.class);
+
+                                            assert tipo != null;
+                                            if (tipo.equals("Vendedor")) {
+                                                DatabaseReference storeRef = databaseRef.child("Tienda").child(idTienda);
+
+                                                // Leer el usuario asociado (ID del vendedor)
+                                                storeRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                                    @Override
+                                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                                        if (dataSnapshot.exists()) {
+                                                            // Obtener el ID del vendedor (usuario asociado)
+                                                            String usuarioAsociado = dataSnapshot.child("usuarioAsociado").getValue(String.class);
+
+                                                            if (usuarioAsociado != null) {
+                                                                // Ahora leer el token del usuario asociado
+                                                                DatabaseReference userTokenRef = databaseRef.child("Usuarios").child(usuarioAsociado).child("tokenFCM");
+                                                                userTokenRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                                                    @Override
+                                                                    public void onDataChange(@NonNull DataSnapshot tokenSnapshot) {
+                                                                        if (tokenSnapshot.exists()) {
+                                                                            String userToken = tokenSnapshot.getValue(String.class);
+                                                                            // Aquí puedes usar el token del usuario como necesites
+                                                                            enviarNotificacion(userToken, "Nuevo pedido");
+                                                                        } else {
+                                                                            Toast.makeText(vista_producto.this, "Token no encontrado", Toast.LENGTH_SHORT).show();
+                                                                        }
+                                                                    }
+
+                                                                    @Override
+                                                                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                                                                        // Manejar posibles errores de la base de datos
+                                                                        Log.e("UsuarioToken", "Error al leer token");
+                                                                    }
+                                                                });
+                                                            } else {
+                                                                Log.d("UsuarioAsociado", "ID del vendedor es null");
                                                             }
+                                                        } else {
+                                                            // Manejar el caso en que no existe el nodo Tienda
+                                                            Log.d("UsuarioAsociado", "Tienda no encontrada");
                                                         }
+                                                    }
 
-                                                        @Override
-                                                        public void onCancelled(@NonNull DatabaseError databaseError) {
-                                                            // Manejar errores de la consulta
-                                                        }
-                                                    });
+                                                    @Override
+                                                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                                                        // Manejar posibles errores de la base de datos
+                                                        Log.e("UsuarioAsociado", "Error al leer datos: " + databaseError.getMessage());
+                                                    }
+                                                });
 
-                                                    Toast.makeText(vista_producto.this, "Pedido realizado con éxito", Toast.LENGTH_SHORT).show();
-                                                    bottomSheetDialog.dismiss();
-                                                } else {
-                                                    Toast.makeText(vista_producto.this, "Error al actualizar la información del pedido en la tienda", Toast.LENGTH_SHORT).show();
-                                                }
-                                            });
-                                } else {
-                                    Toast.makeText(vista_producto.this, "Error al realizar el pedido", Toast.LENGTH_SHORT).show();
-                                }
-                            });
-                }
+
+                                            } else if (tipo.equals("Cliente")) {
+                                                Intent i = new Intent(vista_producto.this, Tiendas_Activity.class);
+                                                startActivity(i);
+                                            }
+
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                                        // Maneja cualquier error en la lectura de datos
+                                    }
+                                });
+
+                            } else {
+                                Toast.makeText(vista_producto.this, "Error al actualizar la información del pedido en la tienda", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    } else {
+                        Toast.makeText(vista_producto.this, "Error al realizar el pedido", Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         });
 
 
     }
-
 
     @SuppressLint("SetTextI18n")
     public void Logicas() {
@@ -364,12 +400,49 @@ public class vista_producto extends AppCompatActivity {
 
     private void mostrarMensaje(String mensaje) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Mensaje")
-                .setMessage(mensaje)
-                .setPositiveButton("Aceptar", (dialog, which) -> {
-                    startActivity(new Intent(vista_producto.this, Tiendas_Activity.class));
-                })
-                .show();
+        builder.setTitle("Mensaje").setMessage(mensaje).setPositiveButton("Aceptar", (dialog, which) -> startActivity(new Intent(vista_producto.this, Tiendas_Activity.class))).show();
     }
+
+    public static void enviarNotificacion(String userToken, String mensaje) {
+
+    }
+
+
+    @SuppressLint("SetTextI18n")
+    private void fetchLocationAndSet() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
+                if (location != null) {
+                    // Use the location object to get the latitude and longitude
+                    double latitude = location.getLatitude();
+                    double longitude = location.getLongitude();
+
+                    // Convert the latitude and longitude into a user-friendly address using Geocoder
+                    Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+                    try {
+                        List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
+                        if (addresses != null && !addresses.isEmpty()) {
+                            Address address = addresses.get(0);
+                            // Get the street address, number, and locality if available
+                            String streetAddress = address.getThoroughfare();
+                            String streetNumber = address.getSubThoroughfare();
+                            String locality = address.getLocality();
+                            String shortAddress = (streetAddress!= null ? streetAddress + " " : "") + (streetNumber != null ? streetNumber : "") + (locality != null ? ", " + locality : "");
+                            txt_ubicacion.setText(shortAddress); // Set the short address with locality in txt_ubicacion
+                        } else {
+                            txt_ubicacion.setText("No se puede determinar la dirección");
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        txt_ubicacion.setText("No se puede determinar la dirección");
+                    }
+                } else {
+                    Toast.makeText(vista_producto.this, "No se puede determinar la dirección", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+    }
+
+
 
 }

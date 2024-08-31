@@ -12,8 +12,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.airbnb.lottie.LottieAnimationView;
 import com.example.agenda.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -32,15 +34,18 @@ import Vendedor.Tiendas.TiendaAdapter;
 import Vendedor.Tiendas.TiendaClase;
 import Vendedor.Tiendas.Tiendas_Activity;
 import de.hdodenhof.circleimageview.CircleImageView;
+import pl.droidsonroids.gif.GifDrawable;
+import pl.droidsonroids.gif.GifImageView;
 
 public class FragmentInicio extends Fragment {
 
     private TiendaAdapter adapter;
     private final List<TiendaClase> tiendas = new ArrayList<>();
-    FirebaseDatabase database = FirebaseDatabase.getInstance();
-    DatabaseReference tiendaRef = database.getReference("Tienda");
-    private TextView TXTNombreUsuario;
-    CircleImageView ImagenUsuario;
+    private FirebaseDatabase database = FirebaseDatabase.getInstance();
+    private DatabaseReference tiendaRef = database.getReference("Tienda");
+    private TextView TXTNombreUsuario, textView, textViewNoTiendas;
+    private CircleImageView ImagenUsuario;
+    private LottieAnimationView ViewEmpty;
 
     public FragmentInicio() {
         // Required empty public constructor
@@ -64,12 +69,15 @@ public class FragmentInicio extends Fragment {
         recyclerView.setAdapter(adapter);
 
         TXTNombreUsuario = view.findViewById(R.id.TXTNombreUsuario);
+        ImagenUsuario = view.findViewById(R.id.ImagenUsuario);
+        ViewEmpty = view.findViewById(R.id.NoTiendas);
+        textView = view.findViewById(R.id.textView);
+        textViewNoTiendas = view.findViewById(R.id.textViewNoTiendas);
+
         FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
         FirebaseUser currentUser = firebaseAuth.getCurrentUser();
         assert currentUser != null;
         String userId = currentUser.getUid();
-
-        ImagenUsuario = view.findViewById(R.id.ImagenUsuario);
 
         tiendaRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -84,25 +92,29 @@ public class FragmentInicio extends Fragment {
                     String direccion = tiendaSnapshot.child("direccion").getValue(String.class);
                     String extra = tiendaSnapshot.child("extra").getValue(String.class);
                     String usuarioAsociado = tiendaSnapshot.child("usuarioAsociado").getValue(String.class);
-                    //Obtener estado de la tienda
                     String estado = tiendaSnapshot.child("estado").getValue(String.class);
-                    if ("Cerrado".equals(estado)) {
-
-                    }
-
-                    // Obtener la URL de descarga de la imagen
                     String imageUrl = tiendaSnapshot.child("imageUrl").getValue(String.class);
-
-                    // Crear una instancia de TiendaClase con los datos obtenidos
                     String tiendaId = tiendaSnapshot.child("id").getValue(String.class);
-                    TiendaClase tienda = new TiendaClase(tiendaId, nombre, descripcion, direccion, extra, usuarioAsociado, imageUrl, estado);
 
-                    // Agregar la tienda a la lista
+                    TiendaClase tienda = new TiendaClase(tiendaId, nombre, descripcion, direccion, extra, usuarioAsociado, imageUrl, estado);
                     tiendas.add(tienda);
                 }
 
                 // Notificar al adaptador que los datos han cambiado
                 adapter.notifyDataSetChanged();
+
+                // Mostrar u ocultar la imagen basada en si la lista está vacía
+                if (tiendas.isEmpty()) {
+                    recyclerView.setVisibility(View.GONE);
+                    ViewEmpty.setVisibility(View.VISIBLE);
+                    textView.setVisibility(View.GONE);
+                    textViewNoTiendas.setVisibility(View.VISIBLE);
+                } else {
+                    recyclerView.setVisibility(View.VISIBLE);
+                    ViewEmpty.setVisibility(View.GONE);
+                    textView.setVisibility(View.VISIBLE);
+                    textViewNoTiendas.setVisibility(View.GONE);
+                }
             }
 
             @Override
@@ -127,15 +139,9 @@ public class FragmentInicio extends Fragment {
             }
         });
 
-        /*ImagenUsuario.setOnClickListener(v -> {
-            Intent intent = new Intent(requireActivity(), Perfil_Activity.class);
-            startActivity(intent);
-        }); */
-
         usuariosRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                // Recupera la URL de la imagen almacenada en Firebase Database
                 String imageUrl = dataSnapshot.child("imagenPerfil").child("url").getValue(String.class);
                 if (imageUrl != null) {
                     Picasso.get().load(imageUrl).into(ImagenUsuario);
@@ -143,9 +149,8 @@ public class FragmentInicio extends Fragment {
             }
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                // Maneja cualquier error en la lectura de datos
+                // Manejar cualquier error en la lectura de datos
             }
         });
-
     }
 }

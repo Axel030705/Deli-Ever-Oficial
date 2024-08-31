@@ -54,6 +54,7 @@
         android:text="Dirección"
         android:textColor="@color/black"
         android:textSize="14sp"
+        android:maxLines="1"
         tools:ignore="HardcodedText" />
 
     <TextView
