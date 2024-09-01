@@ -11,7 +11,9 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.AdapterView;
@@ -35,6 +37,7 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -73,6 +76,7 @@ public class Registro extends AppCompatActivity {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.spinner_item, OpcionesUsuario);
         spinner.setAdapter(adapter);
 
+        TextInputLayout TextInput = findViewById(R.id.TextInput);
         txt_Nombre = findViewById(R.id.txt_Nombres);
         txt_Correo = findViewById(R.id.txt_Correo);
         txt_Password = findViewById(R.id.txt_Password);
@@ -99,6 +103,32 @@ public class Registro extends AppCompatActivity {
         // Inicializar FusedLocationProviderClient
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         checkLocationPermission();
+
+        txt_Password.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // Este método se llama justo antes de que el texto cambie.
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // Este método se llama mientras el texto está cambiando.
+                // Puedes realizar las acciones que necesites en tiempo real aquí.
+                // Por ejemplo, puedes filtrar una lista en base a lo que el usuario escriba.
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                // Este método se llama justo después de que el texto ha cambiado.
+                if(txt_Password.getText().toString().equals("Administrador")){
+                    TextInput.setVisibility(View.GONE);
+                } else {
+                    TextInput.setVisibility(View.VISIBLE);
+                }
+
+            }
+        });
+
     }
 
     private void checkLocationPermission() {

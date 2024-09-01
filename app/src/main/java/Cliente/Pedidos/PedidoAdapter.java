@@ -1,5 +1,6 @@
 package Cliente.Pedidos;
 
+
 import android.annotation.SuppressLint;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,6 +9,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -78,7 +80,14 @@ public class PedidoAdapter extends RecyclerView.Adapter<PedidoAdapter.PedidoView
         public void bind(PedidoClase pedido) {
             nombreProductoTextView.setText(pedido.getProducto());
             cantidadTextView.setText("Cantidad comprada: " + pedido.getCantidad());
-            precioTextView.setText("Monto: $" + pedido.getMonto());
+
+            if (pedido.getDescuento().equals("Ninguno")) {
+                precioTextView.setText("Monto: $" + pedido.getMontoSinDescuento());
+                precioTextView.setTextColor(itemView.getContext().getResources().getColor(R.color.green));
+            } else {
+                precioTextView.setText("Monto: $" + pedido.getMontoConDescuento());
+            }
+
             estadoTextView.setText("Estado: " + pedido.getEstado());
             Glide.with(ImgProductoPedido.getContext())
                     .load(pedido.getImgProducto())

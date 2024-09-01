@@ -9,6 +9,8 @@ import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -60,7 +62,7 @@ public class vista_producto extends AppCompatActivity {
     public double precioTotal;
     private String ubicacionV;
     public String propina;
-    EditText txt_ubicacion;
+    EditText txt_ubicacion, txt_referencias, txt_propina;
 
     //Ubicaciones
     private FusedLocationProviderClient fusedLocationClient;
@@ -180,9 +182,49 @@ public class vista_producto extends AppCompatActivity {
         TextView textPrecioProducto2 = bottomSheetView.findViewById(R.id.textPrecioProducto2);
         AutoCompleteTextView cantidad = bottomSheetView.findViewById(R.id.cantidad2);
         txt_ubicacion = bottomSheetView.findViewById(R.id.txt_ubicacion);
-        //EditText txt_propina = bottomSheetView.findViewById(R.id.txt_propina);
+        txt_propina = bottomSheetView.findViewById(R.id.txt_propina);
+        txt_referencias = bottomSheetView.findViewById(R.id.txt_referencias);
         Button Btn_finalizarProducto2 = bottomSheetView.findViewById(R.id.Btn_finalizarProducto2);
         fetchLocationAndSet();
+
+        //Escuchar si da propina para cambiar el precio total
+        txt_propina.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // Este método se llama justo antes de que el texto cambie.
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // Este método se llama mientras el texto está cambiando.
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                // Este método se llama después de que el texto haya cambiado.
+                // Convertir la propina ingresada a Double, o asignar 0 si está vacío
+                double propinaIngresada = 0.0;
+                if (!s.toString().isEmpty()) {
+                    try {
+                        propinaIngresada = Double.parseDouble(s.toString());
+                    } catch (NumberFormatException e) {
+                        propinaIngresada = 0.0; // En caso de error de formato, usar 0 como predeterminado
+                    }
+                }
+
+                // Recalcular el precio total
+                double precioUnitario = Double.parseDouble(productoPrecio);
+                int cantidadSeleccionada = 0;
+                if (!cantidad.getText().toString().isEmpty()) {
+                    cantidadSeleccionada = Integer.parseInt(cantidad.getText().toString());
+                }
+
+                precioTotal = (precioUnitario * cantidadSeleccionada) + propinaIngresada;
+
+                // Actualizar el texto del botón
+                Btn_finalizarProducto2.setText("Comprar MX $" + precioTotal);
+            }
+        });
 
 
         cantidad.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -253,10 +295,13 @@ public class vista_producto extends AppCompatActivity {
                 String precioTotalString = String.valueOf(precioTotal);
 
                 //Obtener la propina
-                //propina = txt_propina.getText().toString();
+                propina = txt_propina.getText().toString();
+
+                //Obtener las referencias
+                String referencias = txt_referencias.getText().toString();
 
                 // Crea una instancia del modelo de PedidoClase con datos reales
-                PedidoClase nuevoPedido = new PedidoClase(nuevoPedidoId, fechaHoraActual, nombreUsr, txt_ubicacion.getText().toString(), productoNombre, precioTotalString, "Pendiente", "Ninguno", idTienda, productoImg, cantidadSeleccionada, userId, productoId, "No", "", "", "0"
+                PedidoClase nuevoPedido = new PedidoClase(nuevoPedidoId, fechaHoraActual, nombreUsr, txt_ubicacion.getText().toString(), productoNombre, precioTotalString, "Pendiente", "Ninguno", idTienda, productoImg, cantidadSeleccionada, userId, productoId, "No", "", "", propina, referencias, "0"
 
                 );
 

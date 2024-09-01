@@ -1,5 +1,6 @@
 package Cliente;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 
@@ -41,8 +42,8 @@ public class FragmentInicio extends Fragment {
 
     private TiendaAdapter adapter;
     private final List<TiendaClase> tiendas = new ArrayList<>();
-    private FirebaseDatabase database = FirebaseDatabase.getInstance();
-    private DatabaseReference tiendaRef = database.getReference("Tienda");
+    private final FirebaseDatabase database = FirebaseDatabase.getInstance();
+    private final DatabaseReference tiendaRef = database.getReference("Tienda");
     private TextView TXTNombreUsuario, textView, textViewNoTiendas;
     private CircleImageView ImagenUsuario;
     private LottieAnimationView ViewEmpty;
@@ -80,6 +81,7 @@ public class FragmentInicio extends Fragment {
         String userId = currentUser.getUid();
 
         tiendaRef.addValueEventListener(new ValueEventListener() {
+            @SuppressLint("NotifyDataSetChanged")
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 tiendas.clear(); // Limpiar la lista antes de agregar nuevos datos
@@ -125,6 +127,7 @@ public class FragmentInicio extends Fragment {
 
         DatabaseReference usuariosRef = FirebaseDatabase.getInstance().getReference("Usuarios").child(userId);
         usuariosRef.child("nombre").addListenerForSingleValueEvent(new ValueEventListener() {
+            @SuppressLint("SetTextI18n")
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {

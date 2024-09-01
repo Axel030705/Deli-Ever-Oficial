@@ -102,12 +102,13 @@ public class pedidos_finalizados extends AppCompatActivity {
                             String Producto = pedidoDataSnapshot.child("producto").getValue(String.class);
                             String cantidad = pedidoDataSnapshot.child("cantidad").getValue(String.class);
                             String direccion = pedidoDataSnapshot.child("direccion").getValue(String.class);
-                            String monto = pedidoDataSnapshot.child("monto").getValue(String.class);
+                            String montoSinDescuento = pedidoDataSnapshot.child("montoSinDescuento").getValue(String.class);
                             String estado = pedidoDataSnapshot.child("estado").getValue(String.class);
                             String fecha_hora = pedidoDataSnapshot.child("fecha_hora").getValue(String.class);
                             String imgProducto = pedidoDataSnapshot.child("imgProducto").getValue(String.class);
                             String nombre_Cliente = pedidoDataSnapshot.child("nombre_Cliente").getValue(String.class);
                             String descuento = pedidoDataSnapshot.child("descuento").getValue(String.class);
+                            String montoConDescuento = pedidoDataSnapshot.child("montoConDescuento").getValue(String.class);
 
                             // Agregar condición para filtrar por estado
                             if ("Finalizado".equals(estado)) {
@@ -115,7 +116,7 @@ public class pedidos_finalizados extends AppCompatActivity {
                                 PedidoClase pedido = new PedidoClase();
                                 pedido.setProducto(Producto);
                                 pedido.setCantidad(cantidad);
-                                pedido.setMonto(monto);
+                                pedido.setMontoSinDescuento(montoSinDescuento);
                                 pedido.setEstado(estado);
                                 pedido.setImgProducto(imgProducto);
                                 pedido.setIdPedido(idPedido);
@@ -125,10 +126,14 @@ public class pedidos_finalizados extends AppCompatActivity {
                                 pedido.setFecha_Hora(fecha_hora);
                                 pedido.setNombre_Cliente(nombre_Cliente);
                                 pedido.setDescuento(descuento);
+                                pedido.setMontoConDescuento(montoConDescuento);
                                 listaPedidos.add(pedido);
 
                                 // Marcamos que hay pedidos con estados válidos
                                 hayPedidosConEstadosValidos = true;
+
+
+
                             }
                         }
 

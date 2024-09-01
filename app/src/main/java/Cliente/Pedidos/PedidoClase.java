@@ -8,7 +8,7 @@ public class PedidoClase implements Serializable {
     private String Nombre_Cliente;
     private String Direccion;
     private String Producto;
-    private String Monto;
+    private String MontoSinDescuento;
     private String Estado;
     private String Descuento;
     private String idTienda;
@@ -20,18 +20,20 @@ public class PedidoClase implements Serializable {
     private String Ubi_cliente;
     private String Ubi_vendedor;
     private String propina;
+    private String referencia;
+    private String MontoConDescuento;
 
     public PedidoClase() {
 
     }
 
-    public PedidoClase(String idPedido, String fecha_Hora, String nombre_Cliente, String direccion, String producto, String monto, String estado, String descuento, String idTienda, String imgProducto, String cantidad, String idCliente, String idProducto, String calificado, String ubi_cliente, String ubi_vendedor, String propina) {
+    public PedidoClase(String idPedido, String fecha_Hora, String nombre_Cliente, String direccion, String producto, String montoSinDescuento, String estado, String descuento, String idTienda, String imgProducto, String cantidad, String idCliente, String idProducto, String calificado, String ubi_cliente, String ubi_vendedor, String propina, String referencia, String montoConDescuento) {
         this.idPedido = idPedido;
         Fecha_Hora = fecha_Hora;
         Nombre_Cliente = nombre_Cliente;
         Direccion = direccion;
         Producto = producto;
-        Monto = monto;
+        MontoSinDescuento = montoSinDescuento;
         Estado = estado;
         Descuento = descuento;
         this.idTienda = idTienda;
@@ -43,6 +45,8 @@ public class PedidoClase implements Serializable {
         Ubi_cliente = ubi_cliente;
         Ubi_vendedor = ubi_vendedor;
         this.propina = propina;
+        this.referencia = referencia;
+        MontoConDescuento = montoConDescuento;
     }
     public String getIdPedido() {
         return idPedido;
@@ -82,14 +86,6 @@ public class PedidoClase implements Serializable {
 
     public void setProducto(String producto) {
         Producto = producto;
-    }
-
-    public String getMonto() {
-        return Monto;
-    }
-
-    public void setMonto(String monto) {
-        Monto = monto;
     }
 
     public String getEstado() {
@@ -178,6 +174,30 @@ public class PedidoClase implements Serializable {
 
     public void setPropina(String propina) {
         this.propina = propina;
+    }
+
+    public String getReferencia() {
+        return referencia;
+    }
+
+    public void setReferencia(String referencia) {
+        this.referencia = referencia;
+    }
+
+    public String getMontoSinDescuento() {
+        return MontoSinDescuento;
+    }
+
+    public void setMontoSinDescuento(String montoSinDescuento) {
+        MontoSinDescuento = montoSinDescuento;
+    }
+
+    public String getMontoConDescuento() {
+        return MontoConDescuento;
+    }
+
+    public void setMontoConDescuento(String montoConDescuento) {
+        MontoConDescuento = montoConDescuento;
     }
 }
 

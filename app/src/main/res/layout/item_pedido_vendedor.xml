@@ -90,7 +90,7 @@
         <Button
             android:id="@+id/Btn_preparacion"
             android:layout_width="150dp"
-            android:layout_height="50dp"
+            android:layout_height="wrap_content"
             android:text="En preparación"/>
 
         <View
@@ -118,7 +118,7 @@
         <Button
             android:id="@+id/Btn_finalizarPedido"
             android:layout_width="150dp"
-            android:layout_height="50dp"
+            android:layout_height="wrap_content"
             android:text="Finalizar pedido"
             android:backgroundTint="@color/green"/>
 

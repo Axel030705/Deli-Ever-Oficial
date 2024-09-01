@@ -90,11 +90,7 @@ public class FragmentPedidosV extends Fragment {
         pedidoAdapter.setOnItemClickListener(new PedidoAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(int position) {
-                // Accede al pedido seleccionado usando el adaptador
                 PedidoClase pedidoSeleccionado = pedidoAdapter.getPedidoAt(position);
-
-                // Ahora puedes hacer lo que necesitas con el pedido seleccionado
-                // Por ejemplo, puedes abrir una nueva actividad y pasar el pedido como extra
                 Intent intent = new Intent(requireContext(), detalles_pedido.class);
                 intent.putExtra("pedido", pedidoSeleccionado);
                 startActivity(intent);
@@ -104,11 +100,7 @@ public class FragmentPedidosV extends Fragment {
         pedidoAdapterVendedor.setOnItemClickListener(new PedidoAdapterVendedor.OnItemClickListener() {
             @Override
             public void onItemClick(int position) {
-                // Accede al pedido seleccionado usando el adaptador
                 PedidoClase pedidoSeleccionado = pedidoAdapterVendedor.getPedidoAt(position);
-
-                // Ahora puedes hacer lo que necesitas con el pedido seleccionado
-                // Por ejemplo, puedes abrir una nueva actividad y pasar el pedido como extra
                 Intent intent = new Intent(requireContext(), detalles_pedido_vendedor.class);
                 intent.putExtra("pedido", pedidoSeleccionado);
                 startActivity(intent);
@@ -118,38 +110,28 @@ public class FragmentPedidosV extends Fragment {
         Btn_menu_pedidos.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //Creamos el objeto PupupMenu
                 PopupMenu popupMenu = new PopupMenu(requireActivity(), view);
-                //Infla el menu desde el archivo XML
                 popupMenu.getMenuInflater().inflate(R.menu.menu_opt_pedidos, popupMenu.getMenu());
-                //Configura el listener para manejar las opciones del menu
                 popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @SuppressLint("NotifyDataSetChanged")
                     @Override
                     public boolean onMenuItemClick(MenuItem menuItem) {
-
                         int itemId = menuItem.getItemId();
-
                         if (itemId == R.id.opcion1_pedidos) {
-                            // Acción para la opción 1
                             Intent i = new Intent(requireActivity(), pedidos_finalizadosV.class);
                             startActivity(i);
                             return true;
                         } else {
-                            // Otros casos si es necesario
                             return false;
                         }
                     }
                 });
-                //Muestra el PupupMenu
                 popupMenu.show();
             }
         });
 
-
-        ValidarPedidosCliente(); //Validar si el usuario tiene pedidos realizados
-        ValidarPedidosTienda(); //Validar si la tienda tiene pedidos realizados
-
+        ValidarPedidosCliente(); // Validar si el usuario tiene pedidos realizados
+        ValidarPedidosTienda(); // Validar si la tienda tiene pedidos realizados
     }
 
     private void ValidarPedidosCliente() {
@@ -157,7 +139,7 @@ public class FragmentPedidosV extends Fragment {
             @SuppressLint("SetTextI18n")
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if(isAdded()) {
+                if (isAdded()) { // Verifica si el Fragment sigue acoplado
                     if (dataSnapshot.exists()) {
                         nombreUsr = dataSnapshot.child("nombre").getValue(String.class);
                         DataSnapshot pedidosSnapshot = dataSnapshot.child("Pedidos");
@@ -166,9 +148,8 @@ public class FragmentPedidosV extends Fragment {
                             sinPedidos.setVisibility(View.GONE);
                             conPedidos.setVisibility(View.VISIBLE);
                             recyclerViewPedidos.setAdapter(pedidoAdapter);
-                            // Limpiar la lista antes de agregar nuevos pedidos
                             listaPedidos.clear();
-                            // Obtener información de los pedidos
+
                             boolean hayPedidosConEstadosValidos = false, hayPedidosFinalizados = false;
                             for (DataSnapshot pedidoDataSnapshot : pedidosSnapshot.getChildren()) {
                                 String idPedido = pedidoDataSnapshot.child("idPedido").getValue(String.class);
@@ -184,13 +165,11 @@ public class FragmentPedidosV extends Fragment {
                                 String nombre_Cliente = pedidoDataSnapshot.child("nombre_Cliente").getValue(String.class);
                                 String descuento = pedidoDataSnapshot.child("descuento").getValue(String.class);
 
-                                // Agregar condición para filtrar por estado
                                 if ("Pendiente".equals(estado) || "Camino".equals(estado) || "Preparando".equals(estado)) {
-                                    // Crear objeto Pedido y agregar a la lista
                                     PedidoClase pedido = new PedidoClase();
                                     pedido.setProducto(Producto);
                                     pedido.setCantidad(cantidad);
-                                    pedido.setMonto(monto);
+                                    pedido.setMontoSinDescuento(monto);
                                     pedido.setEstado(estado);
                                     pedido.setImgProducto(imgProducto);
                                     pedido.setIdPedido(idPedido);
@@ -202,16 +181,13 @@ public class FragmentPedidosV extends Fragment {
                                     pedido.setDescuento(descuento);
                                     listaPedidos.add(pedido);
 
-                                    // Marcamos que hay pedidos con estados válidos
                                     hayPedidosConEstadosValidos = true;
                                 } else if ("Finalizado".equals(estado)) {
                                     Btn_menu_pedidos.setVisibility(View.VISIBLE);
                                     hayPedidosFinalizados = true;
                                 }
-
                             }
 
-                            // Verificar si no hay pedidos con estados válidos
                             if (!hayPedidosConEstadosValidos) {
                                 sinPedidos.setVisibility(View.VISIBLE);
                                 conPedidos.setVisibility(View.GONE);
@@ -219,9 +195,7 @@ public class FragmentPedidosV extends Fragment {
                                 Btn_menu_pedidos.setVisibility(View.GONE);
                             }
 
-                            final Activity activity = requireActivity();
-                            // Notificar al adaptador que los datos han cambiado en el hilo principal de la interfaz de usuario
-                            activity.runOnUiThread(new Runnable() {
+                            requireActivity().runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
                                     pedidoAdapter.notifyDataSetChanged();
@@ -239,97 +213,90 @@ public class FragmentPedidosV extends Fragment {
         });
     }
 
-
     public void ValidarPedidosTienda() {
-
         userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if(isAdded()) {
+                if (isAdded()) { // Verifica si el Fragment sigue acoplado
                     if (snapshot.exists()) {
-
                         String tipoU = snapshot.child("Tipo de usuario").getValue(String.class);
                         String idTienda = snapshot.child("tiendaId").getValue(String.class);
 
-                        assert tipoU != null;
-                        if (tipoU.equals("Vendedor")) {
-                            // Crear una referencia a la tienda en la base de datos
-                            assert idTienda != null;
-                            DatabaseReference tiendaRef = FirebaseDatabase.getInstance().getReference("Tienda").child(idTienda).child("Pedidos");
+                        if (tipoU != null && tipoU.equals("Vendedor")) {
+                            DatabaseReference tiendaRef = FirebaseDatabase.getInstance()
+                                    .getReference("Tienda")
+                                    .child(idTienda)
+                                    .child("Pedidos");
 
                             tiendaRef.addValueEventListener(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                    if (isAdded()) { // Verifica si el Fragment sigue acoplado
+                                        if (snapshot.exists()) {
+                                            recyclerViewPedidos.setAdapter(pedidoAdapterVendedor);
+                                            listaPedidosVendedor.clear();
+                                            for (DataSnapshot pedidoSnapshot : snapshot.getChildren()) {
+                                                String estado = pedidoSnapshot.child("estado").getValue(String.class);
 
-                                    if (snapshot.exists()) {
-                                        recyclerViewPedidos.setAdapter(pedidoAdapterVendedor);
-                                        // Limpiar la lista antes de agregar nuevos pedidos
-                                        listaPedidosVendedor.clear();
-                                        for (DataSnapshot pedidoSnapshot : snapshot.getChildren()) {
-                                            String estado = pedidoSnapshot.child("estado").getValue(String.class);
+                                                if (!"Finalizado".equals(estado)) {
+                                                    sinPedidos.setVisibility(View.GONE);
+                                                    conPedidos.setVisibility(View.VISIBLE);
+                                                    String idPedido = pedidoSnapshot.child("idPedido").getValue(String.class);
+                                                    String idCliente = pedidoSnapshot.child("idCliente").getValue(String.class);
+                                                    String idTienda = pedidoSnapshot.child("idTienda").getValue(String.class);
+                                                    String Producto = pedidoSnapshot.child("producto").getValue(String.class);
+                                                    String cantidad = pedidoSnapshot.child("cantidad").getValue(String.class);
+                                                    String direccion = pedidoSnapshot.child("direccion").getValue(String.class);
+                                                    String montoSinDescuento = pedidoSnapshot.child("montoSinDescuento").getValue(String.class);
+                                                    String fecha_hora = pedidoSnapshot.child("fecha_hora").getValue(String.class);
+                                                    String imgProducto = pedidoSnapshot.child("imgProducto").getValue(String.class);
+                                                    String nombre_Cliente = pedidoSnapshot.child("nombre_Cliente").getValue(String.class);
+                                                    String descuento = pedidoSnapshot.child("descuento").getValue(String.class);
+                                                    String montoConDescuento = pedidoSnapshot.child("montoConDescuento").getValue(String.class);
 
-                                            // Verificar si el estado no es "Finalizado"
-                                            if (!"Finalizado".equals(estado)) {
-                                                sinPedidos.setVisibility(View.GONE);
-                                                conPedidos.setVisibility(View.VISIBLE);
-                                                String idPedido = pedidoSnapshot.child("idPedido").getValue(String.class);
-                                                String idCliente = pedidoSnapshot.child("idCliente").getValue(String.class);
-                                                String idTienda = pedidoSnapshot.child("idTienda").getValue(String.class);
-                                                String Producto = pedidoSnapshot.child("producto").getValue(String.class);
-                                                String cantidad = pedidoSnapshot.child("cantidad").getValue(String.class);
-                                                String direccion = pedidoSnapshot.child("direccion").getValue(String.class);
-                                                String monto = pedidoSnapshot.child("monto").getValue(String.class);
-                                                String fecha_hora = pedidoSnapshot.child("fecha_hora").getValue(String.class);
-                                                String imgProducto = pedidoSnapshot.child("imgProducto").getValue(String.class);
-                                                String nombre_Cliente = pedidoSnapshot.child("nombre_Cliente").getValue(String.class);
-                                                String descuento = pedidoSnapshot.child("descuento").getValue(String.class);
 
-                                                // Crear objeto Pedido y agregar a la lista
-                                                PedidoClase pedido = new PedidoClase();
-                                                pedido.setProducto(Producto);
-                                                pedido.setCantidad(cantidad);
-                                                pedido.setMonto(monto);
-                                                pedido.setEstado(estado);
-                                                pedido.setImgProducto(imgProducto);
-                                                pedido.setIdPedido(idPedido);
-                                                pedido.setIdCliente(idCliente);
-                                                pedido.setIdTienda(idTienda);
-                                                pedido.setDireccion(direccion);
-                                                pedido.setFecha_Hora(fecha_hora);
-                                                pedido.setNombre_Cliente(nombre_Cliente);
-                                                pedido.setDescuento(descuento);
-                                                listaPedidosVendedor.add(pedido);
-                                            }else{
-                                                Btn_menu_pedidos.setVisibility(View.VISIBLE);
+                                                    PedidoClase pedido = new PedidoClase();
+                                                    pedido.setProducto(Producto);
+                                                    pedido.setCantidad(cantidad);
+                                                    pedido.setMontoSinDescuento(montoSinDescuento);
+                                                    pedido.setEstado(estado);
+                                                    pedido.setImgProducto(imgProducto);
+                                                    pedido.setIdPedido(idPedido);
+                                                    pedido.setIdCliente(idCliente);
+                                                    pedido.setIdTienda(idTienda);
+                                                    pedido.setDireccion(direccion);
+                                                    pedido.setFecha_Hora(fecha_hora);
+                                                    pedido.setNombre_Cliente(nombre_Cliente);
+                                                    pedido.setDescuento(descuento);
+                                                    pedido.setMontoConDescuento(montoConDescuento);
+                                                    listaPedidosVendedor.add(pedido);
+                                                }
                                             }
+
+                                            requireActivity().runOnUiThread(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    pedidoAdapterVendedor.notifyDataSetChanged();
+                                                }
+                                            });
                                         }
                                     }
-
-                                    final Activity activity = requireActivity();
-                                    // Notificar al adaptador que los datos han cambiado en el hilo principal de la interfaz de usuario
-                                    activity.runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            pedidoAdapterVendedor.notifyDataSetChanged();
-                                        }
-                                    });
                                 }
 
                                 @Override
                                 public void onCancelled(@NonNull DatabaseError error) {
-
+                                    // Manejar error de base de datos, si es necesario
                                 }
                             });
-
                         }
                     }
                 }
             }
+
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-
+                // Manejar error de base de datos, si es necesario
             }
         });
-
     }
 }

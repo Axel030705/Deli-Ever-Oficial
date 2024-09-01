@@ -199,7 +199,7 @@ public class FragmentDetalles extends Fragment {
 
                 //Validar si el producto ya se califico
                 if (pedido.getCalificado().equals("No")) {
-                    mostrarFinalizadoDialog(pedido.getIdPedido());
+                    mostrarFinalizadoDialog(getView(), pedido.getIdPedido());
                 }
             }
         }
@@ -210,7 +210,7 @@ public class FragmentDetalles extends Fragment {
 
         //Setear la cantidad de productos y el precio de ellos
         txt_productos.setText("Productos (" + pedido.getCantidad() + ")");
-        txt_precio.setText("$ " + pedido.getMonto());
+        txt_precio.setText("$ " + pedido.getMontoSinDescuento());
         //Validar si tiene descuento
         if (pedido.getDescuento().equals("Ninguno")) {
             int colorRojo = getResources().getColor(R.color.red);
@@ -231,9 +231,9 @@ public class FragmentDetalles extends Fragment {
         }*/
         //Precio total - Descuento
         if (pedido.getDescuento().equals("Ninguno")) {
-            txt_precioTotal.setText("$ " + pedido.getMonto());
+            txt_precioTotal.setText("$ " + pedido.getMontoSinDescuento());
         } else {
-            double monto = Double.parseDouble(pedido.getMonto());
+            double monto = Double.parseDouble(pedido.getMontoSinDescuento());
             double descuento = Double.parseDouble(pedido.getDescuento());
             double precioTotal = monto - descuento;
             @SuppressLint("DefaultLocale") String precioTotalString = String.format("$ %.2f", precioTotal);
@@ -243,8 +243,8 @@ public class FragmentDetalles extends Fragment {
         txt_direccion.setText(pedido.getDireccion());
     }
 
-    private void mostrarFinalizadoDialog(String id_pedido) {
-        ConstraintLayout finalizado_constraint = requireView().findViewById(R.id.finalizado_constraint);
+    private void mostrarFinalizadoDialog(View parentView, String id_pedido) {
+        ConstraintLayout finalizado_constraint = parentView.findViewById(R.id.finalizado_constraint);
         View view = LayoutInflater.from(requireActivity()).inflate(R.layout.finalizado_dialog, finalizado_constraint);
 
         //XML

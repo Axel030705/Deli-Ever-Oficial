@@ -243,7 +243,13 @@ public class PedidoAdapterVendedor extends RecyclerView.Adapter<PedidoAdapterVen
 
             nombreProductoTextView.setText(pedido.getProducto());
             cantidadTextView.setText("Cantidad comprada: " + pedido.getCantidad());
-            precioTextView.setText("Monto: $" + pedido.getMonto());
+
+            if (pedido.getDescuento().equals("Ninguno")) {
+                precioTextView.setText("Monto: $" + pedido.getMontoSinDescuento());
+            } else {
+                precioTextView.setText("Monto: $" + pedido.getMontoConDescuento());
+            }
+
             estadoTextView.setText("Estado: " + pedido.getEstado());
             Glide.with(ImgProductoPedido.getContext())
                     .load(pedido.getImgProducto())

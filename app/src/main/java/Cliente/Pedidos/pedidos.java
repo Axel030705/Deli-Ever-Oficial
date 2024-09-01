@@ -157,12 +157,13 @@ public class pedidos extends AppCompatActivity {
                             String Producto = pedidoDataSnapshot.child("producto").getValue(String.class);
                             String cantidad = pedidoDataSnapshot.child("cantidad").getValue(String.class);
                             String direccion = pedidoDataSnapshot.child("direccion").getValue(String.class);
-                            String monto = pedidoDataSnapshot.child("monto").getValue(String.class);
+                            String montoSinDescuento = pedidoDataSnapshot.child("montoSinDescuento").getValue(String.class);
                             String estado = pedidoDataSnapshot.child("estado").getValue(String.class);
                             String fecha_hora = pedidoDataSnapshot.child("fecha_hora").getValue(String.class);
                             String imgProducto = pedidoDataSnapshot.child("imgProducto").getValue(String.class);
                             String nombre_Cliente = pedidoDataSnapshot.child("nombre_Cliente").getValue(String.class);
                             String descuento = pedidoDataSnapshot.child("descuento").getValue(String.class);
+                            String montoConDescuento = pedidoDataSnapshot.child("montoConDescuento").getValue(String.class);
 
                             // Agregar condición para filtrar por estado
                             if ("Pendiente".equals(estado) || "Camino".equals(estado) || "Preparando".equals(estado)) {
@@ -170,7 +171,7 @@ public class pedidos extends AppCompatActivity {
                                 PedidoClase pedido = new PedidoClase();
                                 pedido.setProducto(Producto);
                                 pedido.setCantidad(cantidad);
-                                pedido.setMonto(monto);
+                                pedido.setMontoSinDescuento(montoSinDescuento);
                                 pedido.setEstado(estado);
                                 pedido.setImgProducto(imgProducto);
                                 pedido.setIdPedido(idPedido);
@@ -180,10 +181,12 @@ public class pedidos extends AppCompatActivity {
                                 pedido.setFecha_Hora(fecha_hora);
                                 pedido.setNombre_Cliente(nombre_Cliente);
                                 pedido.setDescuento(descuento);
+                                pedido.setMontoConDescuento(montoConDescuento);
                                 listaPedidos.add(pedido);
 
                                 // Marcamos que hay pedidos con estados válidos
                                 hayPedidosConEstadosValidos = true;
+
                             } else if ("Finalizado".equals(estado)) {
                                 Btn_menu_pedidos.setVisibility(View.VISIBLE);
                                 hayPedidosFinalizados = true;
@@ -255,17 +258,18 @@ public class pedidos extends AppCompatActivity {
                                             String Producto = pedidoSnapshot.child("producto").getValue(String.class);
                                             String cantidad = pedidoSnapshot.child("cantidad").getValue(String.class);
                                             String direccion = pedidoSnapshot.child("direccion").getValue(String.class);
-                                            String monto = pedidoSnapshot.child("monto").getValue(String.class);
+                                            String montoSinDescuento = pedidoSnapshot.child("montoSinDescuento").getValue(String.class);
                                             String fecha_hora = pedidoSnapshot.child("fecha_hora").getValue(String.class);
                                             String imgProducto = pedidoSnapshot.child("imgProducto").getValue(String.class);
                                             String nombre_Cliente = pedidoSnapshot.child("nombre_Cliente").getValue(String.class);
                                             String descuento = pedidoSnapshot.child("descuento").getValue(String.class);
+                                            String montoConDescuento = pedidoSnapshot.child("montoConDescuento").getValue(String.class);
 
                                             // Crear objeto Pedido y agregar a la lista
                                             PedidoClase pedido = new PedidoClase();
                                             pedido.setProducto(Producto);
                                             pedido.setCantidad(cantidad);
-                                            pedido.setMonto(monto);
+                                            pedido.setMontoSinDescuento(montoSinDescuento);
                                             pedido.setEstado(estado);
                                             pedido.setImgProducto(imgProducto);
                                             pedido.setIdPedido(idPedido);
@@ -275,6 +279,7 @@ public class pedidos extends AppCompatActivity {
                                             pedido.setFecha_Hora(fecha_hora);
                                             pedido.setNombre_Cliente(nombre_Cliente);
                                             pedido.setDescuento(descuento);
+                                            pedido.setMontoConDescuento(montoConDescuento);
                                             listaPedidosVendedor.add(pedido);
                                         }
                                     }

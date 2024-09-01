@@ -35,6 +35,8 @@ public class detalles_pedido_vendedor extends AppCompatActivity {
     Button btn_descuento;
 
     //Variables
+    double precioTotal;
+    String precioTotalString, precioTotal2;
 
     //Chat
     private DatabaseReference databaseReference;
@@ -57,6 +59,8 @@ public class detalles_pedido_vendedor extends AppCompatActivity {
         txt_direccion = findViewById(R.id.txt_direccionV);
         btn_descuento = findViewById(R.id.btn_descuento);
         LayoutMsjV = findViewById(R.id.LayoutMsjV);
+
+        layout_btn_descuento.setVisibility(View.GONE);
 
         //Pedido
         pedidoV = (PedidoClase) getIntent().getSerializableExtra("pedido");
@@ -101,6 +105,7 @@ public class detalles_pedido_vendedor extends AppCompatActivity {
                         // User clicked Si button
                         dialog.dismiss(); // Close the dialog
                         aprobar_descuento();
+                        layout_btn_descuento.setVisibility(View.GONE);
                     }
                 });
 
@@ -187,42 +192,63 @@ public class detalles_pedido_vendedor extends AppCompatActivity {
     @SuppressLint("SetTextI18n")
     private void InformacionPedido() {
 
-        //Setear la cantidad de productos y el precio de ellos
+        // Setear la cantidad de productos y el precio de ellos
         txt_productosV.setText("Productos (" + pedidoV.getCantidad() + ")");
-        txt_precio.setText("$ " + pedidoV.getMonto());
-        //Validar si tiene descuento
-        if (pedidoV.getDescuento().equals("Ninguno")) {
-            int colorRojo = getResources().getColor(R.color.red);
-            txt_descuento.setTextColor(colorRojo);
-            txt_descuento.setHint("Ninguno");
-        } else {
+        txt_precio.setText("$ " + pedidoV.getMontoSinDescuento());
+
+        // Verificar si ya se ha aplicado un descuento
+        if (!pedidoV.getDescuento().equals("Ninguno")) {
+            // Si el descuento ya ha sido aplicado, mostrar el descuento y deshabilitar la edición
             int colorVerde = getResources().getColor(R.color.green);
             txt_descuento.setTextColor(colorVerde);
             txt_descuento.setText("- $ " + pedidoV.getDescuento());
+            txt_descuento.setEnabled(false);
+            layout_btn_descuento.setVisibility(View.GONE);
+        } else {
+            // Si no hay descuento, mostrar el texto "Ninguno" en rojo
+            int colorRojo = getResources().getColor(R.color.red);
+            txt_descuento.setTextColor(colorRojo);
+            txt_descuento.setHint("Ninguno");
+            txt_descuento.setEnabled(true);  // Habilitar la edición si no hay descuento
         }
-        //Precio total - Descuento
+
+        // Precio total - Descuento
         if (pedidoV.getDescuento().equals("Ninguno")) {
-            txt_precioTotal.setText("$ " + pedidoV.getMonto());
+            txt_precioTotal.setText("$ " + pedidoV.getMontoSinDescuento());
+        } else {
+            double monto = Double.parseDouble(pedidoV.getMontoSinDescuento());
+            double descuentoD = Double.parseDouble(pedidoV.getDescuento());
+            precioTotal = monto - descuentoD;
+            precioTotalString = String.format("$ %.2f", precioTotal);
+            txt_precioTotal.setText(precioTotalString);
         }
-        //Setear la ubicación
+
+        // Setear la ubicación
         txt_direccion.setText(pedidoV.getDireccion());
     }
 
     public void aprobar_descuento() {
-        double monto = Double.parseDouble(pedidoV.getMonto());
-        String descuento = String.valueOf(txt_descuento.getText());
-        double descuentoD = Double.parseDouble(descuento);
-        double precioTotal = monto - descuentoD;
-        String precioTotalString = String.format("$ %.2f", precioTotal);
-        txt_precioTotal.setText(precioTotalString);
+        try {
+            double monto = Double.parseDouble(pedidoV.getMontoSinDescuento());
+            double descuentoD = Double.parseDouble(txt_descuento.getText().toString());
+            precioTotal = monto - descuentoD;
+            precioTotal2 = String.valueOf(precioTotal);
 
-        txt_descuento.setText("- $" + txt_descuento.getText());
-        int colorVerde = getResources().getColor(R.color.green);
-        txt_descuento.setTextColor(colorVerde);
-        txt_descuento.setEnabled(false);
-        layout_btn_descuento.setVisibility(View.GONE);
-        actualizar_pedido(descuento);
+            precioTotalString = String.format("$ %.2f", precioTotal);
+            txt_precioTotal.setText(precioTotalString);
+
+            txt_descuento.setText("- $" + descuentoD);
+            txt_descuento.setTextColor(getResources().getColor(R.color.green));
+            txt_descuento.setEnabled(false);
+            layout_btn_descuento.setVisibility(View.GONE);
+
+            actualizar_pedido(String.valueOf(descuentoD));
+        } catch (NumberFormatException e) {
+            // Maneja el error, tal vez mostrando un mensaje de advertencia al usuario
+            txt_descuento.setError("Ingrese un descuento válido");
+        }
     }
+
 
     public void actualizar_pedido(String descuento){
         String idPedido = pedidoV.getIdPedido();
@@ -234,6 +260,14 @@ public class detalles_pedido_vendedor extends AppCompatActivity {
                 .child(idPedido);
         pedidoRef.child("descuento").setValue(descuento);
 
+        //Actualizar monto total - descuento
+        DatabaseReference pedidoRef2 = FirebaseDatabase.getInstance().getReference("Tienda")
+                .child(idTienda)
+                .child("Pedidos")
+                .child(idPedido);
+        pedidoRef2.child("montoConDescuento").setValue(precioTotal2);
+
+
         //Actualizar pedido cliente
         String idCliente = pedidoV.getIdCliente();
         String idPedidoC = pedidoV.getIdPedido();
@@ -244,6 +278,14 @@ public class detalles_pedido_vendedor extends AppCompatActivity {
                 .child(idPedidoC);
 
         clientePedidoRef.child("descuento").setValue(descuento);
+
+        //Actualizar monto total - descuento
+        DatabaseReference clientePedidoRef2 = FirebaseDatabase.getInstance().getReference("Usuarios")
+                .child(idCliente)
+                .child("Pedidos")
+                .child(idPedidoC);
+
+        clientePedidoRef2.child("montoConDescuento").setValue(precioTotal2);
     }
 
 }
