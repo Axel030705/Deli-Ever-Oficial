@@ -13,6 +13,7 @@
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
 
     <application
+        android:name="TodosLosUsuarios.UbicacionAplicacion"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -28,7 +29,7 @@
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyAefc0ANfB-D1u4YveBhpVFItkeddfjHIM" />
+            android:value="AIzaSyBThcT3OrZ1ONOofNafOMJspNn6sAeErdI" />
 
         <activity
             android:name="Cliente.Pedidos.pedidos_finalizados"

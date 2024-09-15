@@ -183,6 +183,7 @@ public class FragmentPedidos extends Fragment {
                                 String nombre_Cliente = pedidoDataSnapshot.child("nombre_Cliente").getValue(String.class);
                                 String descuento = pedidoDataSnapshot.child("descuento").getValue(String.class);
                                 String montoConDescuento = pedidoDataSnapshot.child("montoConDescuento").getValue(String.class);
+                                String idVendedor = pedidoDataSnapshot.child("idVendedor").getValue(String.class);
 
                                 // Agregar condición para filtrar por estado
                                 if ("Pendiente".equals(estado) || "Camino".equals(estado) || "Preparando".equals(estado)) {
@@ -201,6 +202,7 @@ public class FragmentPedidos extends Fragment {
                                     pedido.setNombre_Cliente(nombre_Cliente);
                                     pedido.setDescuento(descuento);
                                     pedido.setMontoConDescuento(montoConDescuento);
+                                    pedido.setIdVendedor(idVendedor);
                                     listaPedidos.add(pedido);
 
                                     // Marcamos que hay pedidos con estados válidos
@@ -293,6 +295,7 @@ public class FragmentPedidos extends Fragment {
                                                 String nombre_Cliente = pedidoSnapshot.child("nombre_Cliente").getValue(String.class);
                                                 String descuento = pedidoSnapshot.child("descuento").getValue(String.class);
                                                 String montoConDescuento = pedidoSnapshot.child("montoConDescuento").getValue(String.class);
+                                                String idVendedor = pedidoSnapshot.child("idVendedor").getValue(String.class);
 
                                                 // Crear objeto Pedido y agregar a la lista
                                                 PedidoClase pedido = new PedidoClase();
@@ -309,6 +312,7 @@ public class FragmentPedidos extends Fragment {
                                                 pedido.setNombre_Cliente(nombre_Cliente);
                                                 pedido.setDescuento(descuento);
                                                 pedido.setMontoConDescuento(montoConDescuento);
+                                                pedido.setIdVendedor(idVendedor);
                                                 listaPedidosVendedor.add(pedido);
                                             }
                                         }

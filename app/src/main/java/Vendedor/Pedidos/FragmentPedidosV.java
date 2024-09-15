@@ -164,6 +164,7 @@ public class FragmentPedidosV extends Fragment {
                                 String imgProducto = pedidoDataSnapshot.child("imgProducto").getValue(String.class);
                                 String nombre_Cliente = pedidoDataSnapshot.child("nombre_Cliente").getValue(String.class);
                                 String descuento = pedidoDataSnapshot.child("descuento").getValue(String.class);
+                                String idVendedor = pedidoDataSnapshot.child("idVendedor").getValue(String.class);
 
                                 if ("Pendiente".equals(estado) || "Camino".equals(estado) || "Preparando".equals(estado)) {
                                     PedidoClase pedido = new PedidoClase();
@@ -179,6 +180,7 @@ public class FragmentPedidosV extends Fragment {
                                     pedido.setFecha_Hora(fecha_hora);
                                     pedido.setNombre_Cliente(nombre_Cliente);
                                     pedido.setDescuento(descuento);
+                                    pedido.setIdVendedor(idVendedor);
                                     listaPedidos.add(pedido);
 
                                     hayPedidosConEstadosValidos = true;
@@ -253,6 +255,7 @@ public class FragmentPedidosV extends Fragment {
                                                     String nombre_Cliente = pedidoSnapshot.child("nombre_Cliente").getValue(String.class);
                                                     String descuento = pedidoSnapshot.child("descuento").getValue(String.class);
                                                     String montoConDescuento = pedidoSnapshot.child("montoConDescuento").getValue(String.class);
+                                                    String idVendedor = pedidoSnapshot.child("idVendedor").getValue(String.class);
 
 
                                                     PedidoClase pedido = new PedidoClase();
@@ -269,6 +272,7 @@ public class FragmentPedidosV extends Fragment {
                                                     pedido.setNombre_Cliente(nombre_Cliente);
                                                     pedido.setDescuento(descuento);
                                                     pedido.setMontoConDescuento(montoConDescuento);
+                                                    pedido.setIdVendedor(idVendedor);
                                                     listaPedidosVendedor.add(pedido);
                                                 }
                                             }

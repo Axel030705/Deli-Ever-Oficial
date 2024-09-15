@@ -50,7 +50,7 @@ import Vendedor.Tiendas.Tiendas_Activity;
 public class vista_producto extends AppCompatActivity {
     private FirebaseAuth firebaseAuth;
     private DatabaseReference usersRef;
-    private String userId;
+    private String userId, vendedorId;
     private DatabaseReference userRef;
     public TextView textNombreProducto, textDescripcionProducto, textPrecioProducto, textExtraProducto, textCantidadProducto;
     public ImageView imgProducto;
@@ -128,6 +128,27 @@ public class vista_producto extends AppCompatActivity {
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 // Maneja cualquier error en la lectura de datos
+            }
+        });
+
+        // Obtén una referencia a la base de datos de Firebase
+        DatabaseReference databaseRef = FirebaseDatabase.getInstance().getReference();
+        // Ubica la entrada del producto en la base de datos utilizando su tiendaId y productoId
+        DatabaseReference VendedorRef = databaseRef.child("Tienda").child(idTienda).child("usuarioAsociado");
+
+        // Lee el valor de la referencia
+        VendedorRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // Verifica si la entrada existe
+                if (dataSnapshot.exists()) {
+                    // Obtén el valor del vendedor asociado
+                    vendedorId = dataSnapshot.getValue(String.class);
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
             }
         });
 
@@ -301,9 +322,7 @@ public class vista_producto extends AppCompatActivity {
                 String referencias = txt_referencias.getText().toString();
 
                 // Crea una instancia del modelo de PedidoClase con datos reales
-                PedidoClase nuevoPedido = new PedidoClase(nuevoPedidoId, fechaHoraActual, nombreUsr, txt_ubicacion.getText().toString(), productoNombre, precioTotalString, "Pendiente", "Ninguno", idTienda, productoImg, cantidadSeleccionada, userId, productoId, "No", "", "", propina, referencias, "0"
-
-                );
+                PedidoClase nuevoPedido = new PedidoClase(nuevoPedidoId, fechaHoraActual, nombreUsr, txt_ubicacion.getText().toString(), productoNombre, precioTotalString, "Pendiente", "Ninguno", idTienda, productoImg, cantidadSeleccionada, userId, productoId,"No", vendedorId,propina, referencias, "0");
 
                 // Guarda el nuevo pedido en la base de datos bajo el nodo del usuario
                 assert nuevoPedidoId != null;

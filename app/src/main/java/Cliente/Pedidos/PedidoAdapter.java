@@ -83,7 +83,6 @@ public class PedidoAdapter extends RecyclerView.Adapter<PedidoAdapter.PedidoView
 
             if (pedido.getDescuento().equals("Ninguno")) {
                 precioTextView.setText("Monto: $" + pedido.getMontoSinDescuento());
-                precioTextView.setTextColor(itemView.getContext().getResources().getColor(R.color.green));
             } else {
                 precioTextView.setText("Monto: $" + pedido.getMontoConDescuento());
             }

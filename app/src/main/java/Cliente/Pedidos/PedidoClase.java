@@ -15,10 +15,9 @@ public class PedidoClase implements Serializable {
     private String ImgProducto;
     private String Cantidad;
     private String idCliente;
+    private String idVendedor;
     private String idProducto;
     private String Calificado;
-    private String Ubi_cliente;
-    private String Ubi_vendedor;
     private String propina;
     private String referencia;
     private String MontoConDescuento;
@@ -27,7 +26,7 @@ public class PedidoClase implements Serializable {
 
     }
 
-    public PedidoClase(String idPedido, String fecha_Hora, String nombre_Cliente, String direccion, String producto, String montoSinDescuento, String estado, String descuento, String idTienda, String imgProducto, String cantidad, String idCliente, String idProducto, String calificado, String ubi_cliente, String ubi_vendedor, String propina, String referencia, String montoConDescuento) {
+    public PedidoClase(String idPedido, String fecha_Hora, String nombre_Cliente, String direccion, String producto, String montoSinDescuento, String estado, String descuento, String idTienda, String imgProducto, String cantidad, String idCliente, String idProducto, String calificado, String idVendedor, String propina, String referencia, String montoConDescuento) {
         this.idPedido = idPedido;
         Fecha_Hora = fecha_Hora;
         Nombre_Cliente = nombre_Cliente;
@@ -42,8 +41,7 @@ public class PedidoClase implements Serializable {
         this.idCliente = idCliente;
         this.idProducto = idProducto;
         Calificado = calificado;
-        Ubi_cliente = ubi_cliente;
-        Ubi_vendedor = ubi_vendedor;
+        this.idVendedor = idVendedor;
         this.propina = propina;
         this.referencia = referencia;
         MontoConDescuento = montoConDescuento;
@@ -152,22 +150,6 @@ public class PedidoClase implements Serializable {
         Calificado = calificado;
     }
 
-    public String getUbi_cliente() {
-        return Ubi_cliente;
-    }
-
-    public void setUbi_cliente(String ubi_cliente) {
-        Ubi_cliente = ubi_cliente;
-    }
-
-    public String getUbi_vendedor() {
-        return Ubi_vendedor;
-    }
-
-    public void setUbi_vendedor(String ubi_vendedor) {
-        Ubi_vendedor = ubi_vendedor;
-    }
-
     public String getPropina() {
         return propina;
     }
@@ -198,6 +180,14 @@ public class PedidoClase implements Serializable {
 
     public void setMontoConDescuento(String montoConDescuento) {
         MontoConDescuento = montoConDescuento;
+    }
+
+    public String getIdVendedor() {
+        return idVendedor;
+    }
+
+    public void setIdVendedor(String idVendedor) {
+        this.idVendedor = idVendedor;
     }
 }
 

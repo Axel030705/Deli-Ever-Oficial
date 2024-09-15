@@ -1,291 +1,63 @@
 package Vendedor.Pedidos;
 
-import android.annotation.SuppressLint;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
+import android.os.Bundle;
+import android.view.MenuItem;
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.example.agenda.R;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-
-import Chat.MainActivityChat;
-import Cliente.Pedidos.PedidoClase;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class detalles_pedido_vendedor extends AppCompatActivity {
 
-    //XML
-    EditText txt_descuento;
-    TextView txt_productosV, txt_precio, txt_envio, txt_precioTotal, txt_direccion;
-    LinearLayout layout_btn_descuento, LayoutMsjV;
-    Button btn_descuento;
-
-    //Variables
-    double precioTotal;
-    String precioTotalString, precioTotal2;
-
-    //Chat
-    private DatabaseReference databaseReference;
-
-    //Pedido//
-    private PedidoClase pedidoV;
+    FragmentTransaction transactionDP;
+    Fragment fragmentDetallesV, fragmentUbicacionV;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_detalles_pedido_vendedor);
+        setContentView(R.layout.activity_detalles_pedido);
 
-        //XML
-        txt_descuento = findViewById(R.id.txt_descuentoV);
-        layout_btn_descuento = findViewById(R.id.layout_btn_descuento);
-        txt_productosV = findViewById(R.id.txt_productosV);
-        txt_precio = findViewById(R.id.txt_precioV);
-        txt_envio = findViewById(R.id.txt_envioV);
-        txt_precioTotal = findViewById(R.id.txt_precioTotalV);
-        txt_direccion = findViewById(R.id.txt_direccionV);
-        btn_descuento = findViewById(R.id.btn_descuento);
-        LayoutMsjV = findViewById(R.id.LayoutMsjV);
+        //Fragments
+        fragmentDetallesV = new FragmentDetallesV();
+        fragmentUbicacionV = new FragmentUbicacionV();
 
-        layout_btn_descuento.setVisibility(View.GONE);
+        //Fragment Inicio
+        getSupportFragmentManager().beginTransaction().add(R.id.contentFragments_detalles_pedido, fragmentDetallesV).commit();
 
-        //Pedido
-        pedidoV = (PedidoClase) getIntent().getSerializableExtra("pedido");
-
-        //Escuchar el ingreso de numeros en txt_descuento
-        txt_descuento.addTextChangedListener(new TextWatcher() {
+        //Botones de navegación
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigation_detalles_pedido);
+        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                transactionDP = getSupportFragmentManager().beginTransaction();
 
-            }
+                // Obtener el id de cada botón
+                int itemId = item.getItemId();
 
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // Realizar las acciones correspondientes al elemento seleccionado
+                if (itemId == R.id.menu_detalles) {
+                    transactionDP.replace(R.id.contentFragments_detalles_pedido, fragmentDetallesV).commit();
+                    // Cambia el ícono y el color del elemento del menú seleccionado
+                    /*item.setIcon(R.drawable.info_2);
+                    Objects.requireNonNull(item.getIcon()).setColorFilter(getResources().getColor(R.color.azulCielo), PorterDuff.Mode.SRC_IN);*/
+                    return true;
+                } else if (itemId == R.id.menu_ubicacion) {
+                    transactionDP.replace(R.id.contentFragments_detalles_pedido, fragmentUbicacionV).commit();
+                    // Cambia el ícono y el color del elemento del menú seleccionado
+                    /*item.setIcon(R.drawable.ubi_2);
+                    Objects.requireNonNull(item.getIcon()).setColorFilter(getResources().getColor(R.color.azulCielo), PorterDuff.Mode.SRC_IN);*/
 
-                if (txt_descuento.getText().length() > 0) {
-                    layout_btn_descuento.setVisibility(View.VISIBLE);
+
+                    return true;
                 } else {
-                    layout_btn_descuento.setVisibility(View.GONE);
+                    return false;
                 }
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-
             }
         });
-
-        btn_descuento.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // Create an AlertDialog.Builder
-                AlertDialog.Builder builder = new AlertDialog.Builder(detalles_pedido_vendedor.this);
-
-                // Set the dialog title and message
-                builder.setTitle("Mensaje")
-                        .setMessage("Deseas aprobar el descuento? Este ya no podrá ser editado ni cancelado");
-
-                // Add positive button
-                builder.setPositiveButton("Si", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        // User clicked Si button
-                        dialog.dismiss(); // Close the dialog
-                        aprobar_descuento();
-                        layout_btn_descuento.setVisibility(View.GONE);
-                    }
-                });
-
-                // Add negative button
-                builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        // User clicked Cancel button
-                        dialog.dismiss(); // Close the dialog
-                    }
-                });
-
-                // Create and show the AlertDialog
-                AlertDialog alertDialog = builder.create();
-                alertDialog.show();
-            }
-
-        });
-
-        //Ingresar al chat con el cliente
-        LayoutMsjV.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // Obtener la referencia a la base de datos
-                databaseReference = FirebaseDatabase.getInstance().getReference("chat");
-                //Pasar id del pedido
-                String idPedido = pedidoV.getIdPedido();
-
-                String idSala = pedidoV.getIdTienda() + "_" + pedidoV.getIdPedido();
-
-                //Obtener la referencia a la ubicación del pedido
-                DatabaseReference pedidoRef = databaseReference.child(idSala);
-
-                pedidoRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        // Verificar si existen mensajes para este pedido
-                        if (dataSnapshot.exists()) {
-
-                            // Obtener el ID del usuario actual
-                            /*String idUsuarioActual = FirebaseAuth.getInstance().getCurrentUser().getUid();*/
-
-                            // Navegar a la actividad de chat
-                            Intent intent = new Intent(detalles_pedido_vendedor.this, MainActivityChat.class);
-                            intent.putExtra("salaId", idSala);
-                            /*intent.putExtra("idUsuario1", idUsuarioActual);
-                            intent.putExtra("idUsuario2", idUsuario2);*/
-                            intent.putExtra("idPedido", pedidoV.getIdPedido());
-                            startActivity(intent);
-
-                        } else {
-
-                            DatabaseReference chatRef = FirebaseDatabase.getInstance().getReference("chat");
-                            String idSala = pedidoV.getIdTienda() + "_" + pedidoV.getIdPedido();
-
-                            // Crear la sala de chat
-                            /*chatRef.child(idSala).child("usuario1").setValue(idUsuarioActual);
-                            chatRef.child(idSala).child("usuario2").setValue(idUsuario2);*/
-                            chatRef.child(idSala).child("idPedido").setValue(pedidoV.getIdPedido());
-
-                            // Navegar a la actividad de chat
-                            Intent intent = new Intent(detalles_pedido_vendedor.this, MainActivityChat.class);
-                            intent.putExtra("salaId", idSala);
-                            /*intent.putExtra("idUsuario1", idUsuarioActual);
-                            intent.putExtra("idUsuario2", idUsuario2);*/
-                            intent.putExtra("idPedido", pedidoV.getIdPedido());
-                            startActivity(intent);
-
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-                        // Manejar errores de Firebase, si es necesario
-                    }
-                });
-            }
-        });
-
-        //Funciones
-        InformacionPedido();
-
-    }
-
-    @SuppressLint("SetTextI18n")
-    private void InformacionPedido() {
-
-        // Setear la cantidad de productos y el precio de ellos
-        txt_productosV.setText("Productos (" + pedidoV.getCantidad() + ")");
-        txt_precio.setText("$ " + pedidoV.getMontoSinDescuento());
-
-        // Verificar si ya se ha aplicado un descuento
-        if (!pedidoV.getDescuento().equals("Ninguno")) {
-            // Si el descuento ya ha sido aplicado, mostrar el descuento y deshabilitar la edición
-            int colorVerde = getResources().getColor(R.color.green);
-            txt_descuento.setTextColor(colorVerde);
-            txt_descuento.setText("- $ " + pedidoV.getDescuento());
-            txt_descuento.setEnabled(false);
-            layout_btn_descuento.setVisibility(View.GONE);
-        } else {
-            // Si no hay descuento, mostrar el texto "Ninguno" en rojo
-            int colorRojo = getResources().getColor(R.color.red);
-            txt_descuento.setTextColor(colorRojo);
-            txt_descuento.setHint("Ninguno");
-            txt_descuento.setEnabled(true);  // Habilitar la edición si no hay descuento
-        }
-
-        // Precio total - Descuento
-        if (pedidoV.getDescuento().equals("Ninguno")) {
-            txt_precioTotal.setText("$ " + pedidoV.getMontoSinDescuento());
-        } else {
-            double monto = Double.parseDouble(pedidoV.getMontoSinDescuento());
-            double descuentoD = Double.parseDouble(pedidoV.getDescuento());
-            precioTotal = monto - descuentoD;
-            precioTotalString = String.format("$ %.2f", precioTotal);
-            txt_precioTotal.setText(precioTotalString);
-        }
-
-        // Setear la ubicación
-        txt_direccion.setText(pedidoV.getDireccion());
-    }
-
-    public void aprobar_descuento() {
-        try {
-            double monto = Double.parseDouble(pedidoV.getMontoSinDescuento());
-            double descuentoD = Double.parseDouble(txt_descuento.getText().toString());
-            precioTotal = monto - descuentoD;
-            precioTotal2 = String.valueOf(precioTotal);
-
-            precioTotalString = String.format("$ %.2f", precioTotal);
-            txt_precioTotal.setText(precioTotalString);
-
-            txt_descuento.setText("- $" + descuentoD);
-            txt_descuento.setTextColor(getResources().getColor(R.color.green));
-            txt_descuento.setEnabled(false);
-            layout_btn_descuento.setVisibility(View.GONE);
-
-            actualizar_pedido(String.valueOf(descuentoD));
-        } catch (NumberFormatException e) {
-            // Maneja el error, tal vez mostrando un mensaje de advertencia al usuario
-            txt_descuento.setError("Ingrese un descuento válido");
-        }
-    }
-
-
-    public void actualizar_pedido(String descuento){
-        String idPedido = pedidoV.getIdPedido();
-        String idTienda = pedidoV.getIdTienda();
-
-        DatabaseReference pedidoRef = FirebaseDatabase.getInstance().getReference("Tienda")
-                .child(idTienda)
-                .child("Pedidos")
-                .child(idPedido);
-        pedidoRef.child("descuento").setValue(descuento);
-
-        //Actualizar monto total - descuento
-        DatabaseReference pedidoRef2 = FirebaseDatabase.getInstance().getReference("Tienda")
-                .child(idTienda)
-                .child("Pedidos")
-                .child(idPedido);
-        pedidoRef2.child("montoConDescuento").setValue(precioTotal2);
-
-
-        //Actualizar pedido cliente
-        String idCliente = pedidoV.getIdCliente();
-        String idPedidoC = pedidoV.getIdPedido();
-
-        DatabaseReference clientePedidoRef = FirebaseDatabase.getInstance().getReference("Usuarios")
-                .child(idCliente)
-                .child("Pedidos")
-                .child(idPedidoC);
-
-        clientePedidoRef.child("descuento").setValue(descuento);
-
-        //Actualizar monto total - descuento
-        DatabaseReference clientePedidoRef2 = FirebaseDatabase.getInstance().getReference("Usuarios")
-                .child(idCliente)
-                .child("Pedidos")
-                .child(idPedidoC);
-
-        clientePedidoRef2.child("montoConDescuento").setValue(precioTotal2);
     }
 
 }
