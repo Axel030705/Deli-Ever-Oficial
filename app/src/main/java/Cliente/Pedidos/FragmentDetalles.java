@@ -201,6 +201,7 @@ public class FragmentDetalles extends Fragment {
                 if (pedido.getCalificado().equals("No")) {
                     mostrarFinalizadoDialog(getView(), pedido.getIdPedido());
                 }
+
             }
         }
     }
