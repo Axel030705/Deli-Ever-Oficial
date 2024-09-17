@@ -46,7 +46,7 @@
         android:layout_height="50dp"
         android:layout_marginTop="35dp"
         android:text="Nombre"
-        android:textSize="20sp"
+        android:textSize="22sp"
         android:textColor="@color/black"
         android:textStyle="bold"
         android:gravity="center"
@@ -70,7 +70,7 @@
     <TextView
         android:id="@+id/textPrecioProducto"
         android:layout_width="350dp"
-        android:layout_height="50dp"
+        android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:text="Precio"
         android:textSize="20sp"
