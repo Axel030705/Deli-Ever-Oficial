@@ -28,7 +28,7 @@
             android:layout_gravity="center"
             android:layout_marginTop="20dp"
             android:layout_marginBottom="20dp"
-            android:src="@color/azulCielo" />
+            android:src="@drawable/icono_agregar_imagen" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
